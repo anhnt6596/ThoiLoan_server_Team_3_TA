@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="windows-1252" ?>
+<portalInfo>
+    <appVersion>1</appVersion>
+    <linkUpdate>http://play.zing.vn</linkUpdate>
+    <configVersion>1</configVersion>
+    <listGame>
+        <int>9</int>
+        <int>8</int>
+    </listGame>
+</portalInfo>

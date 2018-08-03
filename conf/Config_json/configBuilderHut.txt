@@ -1,0 +1,1 @@
+{"BDH_1":{"3":{"hitpoints":250,"height":2,"coin":1000,"width":2},"2":{"hitpoints":250,"height":2,"coin":500,"width":2},"1":{"hitpoints":250,"height":2,"coin":0,"width":2},"5":{"hitpoints":250,"height":2,"coin":4000,"width":2},"4":{"hitpoints":250,"height":2,"coin":2000,"width":2}}}

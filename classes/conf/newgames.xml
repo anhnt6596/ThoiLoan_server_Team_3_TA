@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<newGames>
+  <listGame>
+    <GameInfo>
+      <id>9</id>
+      <name>Cờ Tướng</name>
+      <type>Game Cờ</type>
+      <category>2</category>
+      <publisher>GSN</publisher>
+      <size>6.4</size>
+      <ver>1.2</ver>
+	  <contentversion>1</contentversion>
+      <lastUpdate>24/10/2013</lastUpdate>
+      <apk>http://zpmobile.static.g6.zing.vn/zpp/ChessAndroidZalo_1.apk</apk>
+      <pId>chess.gsn.portalnew</pId>
+      <des>Trải qua hàng trăm năm, Cờ tướng vẫn giữ được một sức hút mạnh mẽ dành cho những người ưa thử thách, đòi hỏi tính nhẫn nại và có chiến lược sâu rộng. Tuy nhiên, nhược điểm lớn trò chơi là đòi hỏi cần phải có thời gian và không gian phù hợp để cả hai bên có thể suy nhẫm và đưa ra những nước cờ đúng đắn.\nRút ngắn thời gian và không gian, cờ tướng ZingPlay Mobile sẽ giải quyết được những khó khăn đó. Chỉ với một chiếc điện thoại, bạn hoàn toàn có thể chủ động về không gian và thoài mái về thời gian. Đặc biệt hơn, bạn có thể tỷ thí với rất nhiều kiện tướng xuất sắc ở mọi miền đất nước mà không phải đi đâu xa xôi cả.\nỞ đâu có sóng Wi-fi hoặc mạng 3G ổn định, nơi đó có người thỏa sức vui chơi cùng Cờ Tướng Mobile ZingPlay.</des>
+      <icon_large>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/chess.gsn.portalnew.large.png</icon_large>
+      <icon_medium>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/chess.gsn.portalnew.medium.png</icon_medium>
+      <icon_small>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/chess.gsn.portalnew.small.png</icon_small>
+      <screenshot>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/ct1.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/ct2.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/ct3.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/ct4.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/ct5.png</String>
+      </screenshot>
+    </GameInfo>
+    <GameInfo>
+      <id>8</id>
+      <name>Cờ Caro</name>
+      <type>Game Cờ</type>
+      <category>2</category>
+      <publisher>GSN</publisher>
+      <size>6.5</size>
+      <ver>1.0</ver>
+	  <contentversion>1</contentversion>
+      <lastUpdate>24/10/2013</lastUpdate>
+      <apk>http://zpmobile.static.g6.zing.vn/zpp/CaroAndroid_1.apk</apk>
+      <pId>caro.gsn.portalnew</pId>
+      <des>Tại cổng game ZingPlay có một trò chơi mà các bạn học sinh cấp 3 hay chơi bằng cách kẻ giấy thành các ô vuông rồi mỗi người cầm một cây bút và khoanh khiến nhiều giáo viên phài đau đầu trước lòng ham thích trò chơi này đến mức lén lút chơi game này nếu học các môn nhàm chán.\nĐây là trò chơi mà hầu hết mọi người đều biết đến, nhưng lúc nào cũng kiếm 1 đối thủ để chơi ca rô cùng bạn đúng là không phải dễ, Game cờ ca rô trên điện thoại của ZingPlay với hàng nghìn cao thủ sẽ giúp giải quyết điều đó. Đặc biệt, với Cờ Caro Mobile, bạn có thể chơi bằng nhiều tài khoản ZingMe, Facebook hay Zalo hoặc không cần tài khoản. Còn chờ gì nữa mà không cài đặt Cờ Caro cho dế cưng của bạn ngay bây giờ nhỉ?\nỞ đâu có sóng Wi-fi hoặc mạng 3G ổn định, nơi đó có người thỏa sức vui chơi cùng Cờ Caro ZingPlay</des>
+      <icon_large>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/caro.gsn.portalnew.large.png</icon_large>
+      <icon_medium>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/caro.gsn.portalnew.medium.png</icon_medium>
+      <icon_small>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/caro.gsn.portalnew.small.png</icon_small>
+      <screenshot>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/Caro1.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/Caro2.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/Caro3.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/Caro4.png</String>
+        <String>http://zingplay.static.g6.zing.vn/images/zpp/screenshots/Caro5.png</String>
+      </screenshot>
+    </GameInfo>
+  </listGame>
+</newGames>
