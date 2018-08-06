@@ -57,4 +57,5 @@ public class CmdDefine {
     public static final short GET_TROOP_INFO = 4001;
     public static final short RESEARCH_TROOP = 4002;
     public static final short RESEARCH_TROOP_COMPLETE = 4003;
+    public static final short RESEARCH_TROOP_QUICK_FINISH = 4004;
 }

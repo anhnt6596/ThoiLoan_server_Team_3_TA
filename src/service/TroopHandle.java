@@ -17,12 +17,14 @@ import cmd.receive.map.RequestMapInfo;
 import cmd.receive.map.RequestMoveConstruction;
 import cmd.receive.map.RequestQuickFinish;
 import cmd.receive.map.RequestUpgradeConstruction;
+import cmd.receive.troop.RequestQuickFinishResearch;
 import cmd.receive.troop.RequestResearch;
 import cmd.receive.troop.RequestResearchComplete;
 import cmd.receive.troop.RequestTroopInfo;
 import cmd.receive.user.RequestAddResource;
 import cmd.receive.user.RequestUserInfo;
 
+import cmd.send.demo.ResponseQuickFinishResearch;
 import cmd.send.demo.ResponseRequestAddResource;
 import cmd.send.demo.ResponseRequestMapInfo;
 import cmd.send.demo.ResponseRequestUserInfo;
@@ -76,6 +78,10 @@ public class TroopHandle extends BaseClientRequestHandler {
                 case CmdDefine.RESEARCH_TROOP_COMPLETE:
                     RequestResearchComplete packet3 = new RequestResearchComplete(dataCmd);
                     processResearchComplete(user, packet3);
+                    break;
+                case CmdDefine.RESEARCH_TROOP_QUICK_FINISH:
+                    RequestQuickFinishResearch packet4 = new RequestQuickFinishResearch(dataCmd);
+                    processQuickFinishResearch(user, packet4);
                     break;
             }
         } catch (Exception e) {
@@ -170,7 +176,7 @@ public class TroopHandle extends BaseClientRequestHandler {
             long currentTime = System.currentTimeMillis();
             long startTime = troop.startTime;
             long passTime = currentTime - startTime;
-            long requestTime = ServerConstant.configTroop
+            long requestTime = 1000 * ServerConstant.configTroop
                 .getJSONObject(troop.type)
                 .getJSONObject(String.valueOf(troop.level + 1))
                 .getInt("researchTime");
@@ -182,10 +188,56 @@ public class TroopHandle extends BaseClientRequestHandler {
             System.out.println("SUCCESS: Nghien cuu thanh cong!");
             this.troopLevelUp(user, packet3.type);
             send(new ResponseResearchComplete(ServerConstant.SUCCESS), user);
+            return;
         } catch (Exception e) {
             
         }
         send(new ResponseResearchComplete(ServerConstant.ERROR), user);
+    }
+
+    private void processQuickFinishResearch(User user, RequestQuickFinishResearch packet4) {
+        System.out.println("RESEARCH QUICK FINISH COMPLETE REQUEST : " + packet4.type);
+        try {
+            TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+            if (troopInfo == null) {
+                //send response error
+                send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
+                return;
+            }
+            Troop troop = troopInfo.troopMap.get(packet4.type);
+            if (!troop.status.equals("researching")) {
+                System.out.println("ERROR: Quan linh khong trong trang thai dang nghien cuu!");
+                send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
+                return;
+            }
+            long currentTime = System.currentTimeMillis();
+            long startTime = troop.startTime;
+            long passTime = currentTime - startTime;
+            long requestTime = 1000 * ServerConstant.configTroop
+                .getJSONObject(troop.type)
+                .getJSONObject(String.valueOf(troop.level + 1))
+                .getInt("researchTime");
+            long timeLeft = requestTime - passTime;
+            if (timeLeft <= 0) {
+                System.out.println("ERROR: Nghien cuu da xong roi!");
+                send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
+                return;
+            } else {
+                int reqG = (int) Math.ceil(timeLeft / 60000);
+                boolean ok = reduceG(user, reqG);
+                if(ok) {
+                    System.out.println("SUCCESS: Nghien cuu thanh cong: " + reqG + "G.");
+                    this.troopLevelUp(user, packet4.type);
+                    send(new ResponseQuickFinishResearch(ServerConstant.SUCCESS), user);
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR: Có l?i x?y ra!");
+            send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
+            return;
+        }
+        send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
     }
     
     private void troopLevelUp(User user, String type) {
@@ -219,6 +271,22 @@ public class TroopHandle extends BaseClientRequestHandler {
             troopInfo.troopMap.put(type, troop);
             troopInfo.saveModel(user.getId());
         } catch (Exception e) {
+        }
+    }
+
+    private boolean reduceG(User user, int reqG) {
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            int coin = userInfo.coin;
+            if (coin < reqG) {
+                System.out.println("ERROR: Khong du G!");
+                return false;
+            }
+            userInfo.reduceUserResources(0, 0, 0, reqG, "", false);
+            userInfo.saveModel(user.getId());
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
