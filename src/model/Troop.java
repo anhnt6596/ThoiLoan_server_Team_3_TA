@@ -50,6 +50,7 @@ public class Troop extends DataModel {
     }
     public void levelUp() {
         this.level = (short) (this.level + 1);
+        this.setStatus("completed");
     }
     public void setStatus(String status) {
         this.status = status;

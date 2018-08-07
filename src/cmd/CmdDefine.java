@@ -64,4 +64,5 @@ public class CmdDefine {
     public static final short QUICK_FINISH_TRAIN_TROOP = 7004;
     public static final short FINISH_TIME_TRAIN_TROOP = 7005;
 
+    public static final short RESEARCH_TROOP_QUICK_FINISH = 4004;
 }
