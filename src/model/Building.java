@@ -126,9 +126,5 @@ public class Building{
             return 0;
         }        
     }
-
-    public void setStartTime() {
-        this.timeStart = System.currentTimeMillis();
-    }
 }
 

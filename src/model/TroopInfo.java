@@ -69,7 +69,7 @@ public class TroopInfo extends DataModel {
             Iterator<?> keys = ServerConstant.configTroopBase.keys();
             while (keys.hasNext()){
                 String key = (String) keys.next();
-                this.troopMap.put(key, new Troop(key, (short) 0, (short) 0, (short) 0, "completed"));
+                this.troopMap.put(key, new Troop(key, (short) 0, (short) 1, (short) 0, "completed"));
                 this.size++;
             }
         } catch (Exception e){
