@@ -138,7 +138,7 @@ public class TroopHandle extends BaseClientRequestHandler {
                             send(new ResponseResearch(ServerConstant.ERROR), user);
                             return;
                         }
-                        troopLevelUp(user, troop.type);
+                        //troopLevelUp(user, troop.type);
                         send(new ResponseResearch(ServerConstant.SUCCESS), user);
                         this.startResearchTroop(user, troop.type);
                         System.out.println("Yeu cau nghien cuu thanh cong_____SUCCESS");
