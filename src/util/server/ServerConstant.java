@@ -37,7 +37,9 @@ public class ServerConstant {
     
     public static final String gold_capacity = "capacityGold"; 
     public static final String elixir_capacity = "capacityElixir"; 
-    public static final String darkElixir_capacity = "capacityDarkElixir"; 
+    public static final String darkElixir_capacity = "capacityDarkElixir";
+    
+    public static final String PREFIX_BARRACK_QUEUE_INFO = "BarrackQueueInfo";
         
     public static JSONObject configInitGame ;
     public static JSONObject configArmyCamp ;

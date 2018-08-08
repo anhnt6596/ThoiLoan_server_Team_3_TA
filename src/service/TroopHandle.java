@@ -110,6 +110,7 @@ public class TroopHandle extends BaseClientRequestHandler {
         try {
             System.out.println("research troop: id " + user.getId() + " & type: " + troop.type);
             MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            
             if (mapInfo == null) {
                 //send response error
                 send(new ResponseResearch(ServerConstant.ERROR), user);
@@ -128,19 +129,28 @@ public class TroopHandle extends BaseClientRequestHandler {
                             send(new ResponseResearch(ServerConstant.ERROR), user);
                         }
                         int labLevel = building.level;
-                        int laboratoryLevelRequired = ServerConstant.configTroop
+                        JSONObject troopNextLvInfo = ServerConstant.configTroop
                             .getJSONObject(troop.type)
-                            .getJSONObject(String.valueOf(troopLevel + 1))
-                            .getInt("laboratoryLevelRequired");
+                            .getJSONObject(String.valueOf(troopLevel + 1));
+                        int laboratoryLevelRequired = troopNextLvInfo.getInt("laboratoryLevelRequired");
                         System.out.println("TROOP_LEVEL : " + laboratoryLevelRequired);
                         if (labLevel < laboratoryLevelRequired) {
                             System.out.println("ERROR: Nha nghien cuu khong du cap de nghien cuu linh");
                             send(new ResponseResearch(ServerConstant.ERROR), user);
                             return;
                         }
+                        ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+                        int requiredElixir = troopNextLvInfo.getInt("researchElixir");
+                        int requireDarkElixir = troopNextLvInfo.getInt("researchDarkElixir");
+                        if (userInfo.elixir < requiredElixir || userInfo.darkElixir < requireDarkElixir) {
+                            userInfo.saveModel(user.getId());
+                            System.out.println("ERROR: Nguoi choi thieu tai nguyen de nang cap!");
+                            send(new ResponseResearch(ServerConstant.ERROR), user);
+                            return;
+                        }
                         //troopLevelUp(user, troop.type);
                         send(new ResponseResearch(ServerConstant.SUCCESS), user);
-                        this.startResearchTroop(user, troop.type);
+                        this.startResearchTroop(user, troop.type, requiredElixir, requireDarkElixir);
                         System.out.println("Yeu cau nghien cuu thanh cong_____SUCCESS");
                         return;
                     } else {
@@ -233,7 +243,7 @@ public class TroopHandle extends BaseClientRequestHandler {
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERROR: Có l?i x?y ra!");
+            System.out.println("ERROR: Cï¿½ l?i x?y ra!");
             send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
             return;
         }
@@ -262,7 +272,7 @@ public class TroopHandle extends BaseClientRequestHandler {
         }
     }
 
-    private void startResearchTroop(User user, String type) {
+    private void startResearchTroop(User user, String type, int reqElixir, int reqDarkElixir) {
         try {
             TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
             Troop troop = troopInfo.troopMap.get(type);
@@ -270,6 +280,10 @@ public class TroopHandle extends BaseClientRequestHandler {
             troop.setStartTime(System.currentTimeMillis());
             troopInfo.troopMap.put(type, troop);
             troopInfo.saveModel(user.getId());
+
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            userInfo.reduceUserResources(0, reqElixir, reqDarkElixir, 0, "", false);
+            userInfo.saveModel(user.getId());
         } catch (Exception e) {
         }
     }
