@@ -25,7 +25,6 @@ public class TroopInBarrack extends DataModel {
     public String name;
 //    public int level;                               //doc level tu TroopInfo tra ve
     public int amount;
-    public boolean isInQueue;
     public int currentPosition;
     public int housingSpace;                                        //doc tu config
     public int trainingTime;                                        //doc tu config
@@ -37,7 +36,6 @@ public class TroopInBarrack extends DataModel {
         name = _name;
 //        level = _level;
         amount = 0;
-        isInQueue = false;
         currentPosition = -1;
         initConfig();
     }

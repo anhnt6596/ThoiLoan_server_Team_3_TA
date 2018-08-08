@@ -46,6 +46,30 @@ public class BarrackQueue extends DataModel {
         }
     }
     
+    public void updateQueue(int whoDropId) {
+        TroopInBarrack troopInBarrack;
+        for (String troopType : troopListMap.keySet()) {
+            troopInBarrack = troopListMap.get(troopType);
+            if(troopInBarrack.currentPosition > whoDropId){
+                troopInBarrack.currentPosition--;
+                if(troopInBarrack.currentPosition == 0){
+                    this.startTime = System.currentTimeMillis();
+                }
+            }
+        }
+    }
+    
+    public TroopInBarrack getTroopByPosition(int position) {
+        TroopInBarrack troopInBarrack;
+        for (String troopType : troopListMap.keySet()) {
+            troopInBarrack = troopListMap.get(troopType);
+            if(troopInBarrack.amount > 0 && troopInBarrack.currentPosition == position){
+                return troopInBarrack;
+            }
+        }
+        return null;
+    }
+    
     public int getQueueLength(int level) {
         int length = 0;
         String path = System.getProperty("user.dir")+"/conf/";

@@ -17,6 +17,7 @@ import cmd.receive.troop.RequestTroopInfo;
 
 import cmd.send.demo.ResponseRequestMapInfo;
 import cmd.send.demo.ResponseRequestQuickFinish;
+import cmd.send.demo.ResponseResearch;
 import cmd.send.demo.ResponseTroopInfo;
 
 import cmd.send.train.ResponseRequestCancelTrainTroop;
@@ -25,6 +26,8 @@ import cmd.send.train.ResponseRequestBarrackQueueInfo;
 import cmd.send.train.ResponseRequestFinishTimeTrainTroop;
 import cmd.send.train.ResponseRequestTrainTroop;
 
+import model.MapInfo;
+import model.Troop;
 import model.TroopInfo;
 
 import model.ZPUserInfo;
@@ -95,10 +98,13 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
             if(barrackQueueInfo == null){
                 System.out.println("======================= BarrackQueueInfo null ======================");
-                barrackQueueInfo = new BarrackQueueInfo();
-                barrackQueueInfo.saveModel(user.getId());
+                barrackQueueInfo = new BarrackQueueInfo();  
+            }else {
+                checkFirst(barrackQueueInfo, user);
             }
+            barrackQueueInfo.saveModel(user.getId());
             send(new ResponseRequestBarrackQueueInfo(barrackQueueInfo), user);
+            
             
         } catch (Exception e) {
             System.out.println(e);
@@ -163,12 +169,10 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 barrackQueue.startTime = System.currentTimeMillis();
                 barrackQueue.amountItemInQueue++;
                 troop.currentPosition = 0;
-                troop.isInQueue = true;
                 System.out.println("currentPosition: " + troop.currentPosition);
             }else{
-                if(troop.isInQueue == false){
+                if(troop.amount == 0){
                     barrackQueue.amountItemInQueue++;
-                    troop.isInQueue = true;
                     troop.currentPosition = barrackQueue.amountItemInQueue - 1;
                     System.out.println("currentPosition: " + troop.currentPosition);
                 }
@@ -247,17 +251,9 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             }
             barrackQueue.totalTroopCapacity -= troop.housingSpace;
             if(troop.amount == 0){
-                troop.isInQueue = false;
                 barrackQueue.amountItemInQueue--;
                 if(barrackQueue.amountItemInQueue != 0){
-                    int whoDropId = troop.currentPosition;
-                    TroopInBarrack troopInBarrack;
-                    for (String troopType : barrackQueue.troopListMap.keySet()) {
-                        troopInBarrack = barrackQueue.troopListMap.get(troopType);
-                        if(troopInBarrack.currentPosition > whoDropId){
-                            troopInBarrack.currentPosition--;
-                        }
-                    }
+                    barrackQueue.updateQueue(troop.currentPosition);
                 }
                 troop.currentPosition = -1;
             }
@@ -319,7 +315,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             JSONObject troopBaseConfig = ServerConstant.configTroopBase;
             long timeTrain;
             try {
-                timeTrain = troopBaseConfig.getJSONObject(packet.typeTroop).getLong("trainingTime");
+                timeTrain = troopBaseConfig.getJSONObject(packet.typeTroop).getLong("trainingTime") * 1000;
             } catch (JSONException e) {
                 return;
             }
@@ -327,34 +323,34 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             long time_cur = System.currentTimeMillis();
             long time_da_chay = time_cur - barrackQueue.startTime;
             
-            if ((time_da_chay > timeTrain) && remainTroop == troop.amount - 1){
+            System.out.println("============================================ HERE 1===========================");
+            if ((time_da_chay >= timeTrain) && remainTroop == troop.amount - 1){
                 troop.amount--;
+                //Tang so luong loai troop nay
+                System.out.println("============================================ HERE 2===========================");
+                TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+                if (troopInfo == null) {
+                    //send response error
+                    send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR), user);
+                    return;
+                }
+                Troop troopObj = troopInfo.troopMap.get(packet.typeTroop);
+                troopObj.population++;
+                troopInfo.troopMap.put(packet.typeTroop, troopObj);
+                troopInfo.saveModel(user.getId());
+                System.out.println("============================================ HERE 3===========================");
+
                 barrackQueue.totalTroopCapacity -= troop.housingSpace;
                 
                 //Het icon trong item
                 if(troop.amount == 0){
-                    barrackQueue.amountItemInQueue--;
-                    troop.isInQueue = false;
-                    troop.currentPosition = -1;
-                    //Het item trong queue
-                    if(barrackQueue.amountItemInQueue == 0){
-                        return;
-                        //Con item trong queue
-                    }else{
-                        int whoDropId = troop.currentPosition;
-                        TroopInBarrack troopInBarrack;
-                        for (String troopType : barrackQueue.troopListMap.keySet()) {
-                            troopInBarrack = barrackQueue.troopListMap.get(troopType);
-                            if(troopInBarrack.currentPosition > whoDropId){
-                                troopInBarrack.currentPosition--;
-                            }
-                        }
+                    barrackQueue.amountItemInQueue--;              
+                    if(barrackQueue.amountItemInQueue != 0){
+                        barrackQueue.updateQueue(troop.currentPosition);
                     }
-                    //Con icon trong item
+                    troop.currentPosition = -1;
                 }else{
-                 
-                    barrackQueue.startTime = System.currentTimeMillis();
-                    
+                    barrackQueue.startTime = System.currentTimeMillis();    
                 }
             }
             
@@ -373,6 +369,84 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
           
         } catch (Exception e) {
             System.out.println(e);
+        }
+    }
+    
+    public void increaseAmountTroop(User user, String typeTroop, int amount) {
+        //Tang so luong loai troop nay
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return;
+        }
+        
+        Troop troopObj = troopInfo.troopMap.get(typeTroop);
+        troopObj.population += amount;
+        troopInfo.troopMap.put(typeTroop, troopObj);
+        try {
+            troopInfo.saveModel(user.getId());
+        } catch (Exception e) {
+        }
+    }
+        
+    public void checkFirst(BarrackQueueInfo barrackQueueInfo, User user) {
+        long time_da_chay;      //ms
+        
+        BarrackQueue barrackQueue;     
+        for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueInfo.barrackQueueMap.get(idBarrack);
+            if(barrackQueue.startTime == 0){
+                continue;
+            }
+            time_da_chay = System.currentTimeMillis() - barrackQueue.startTime;
+            //troopList
+            if(barrackQueue.amountItemInQueue > 0 && barrackQueue.totalTroopCapacity > 0){
+                long amountTrainedTroop = 0;
+                TroopInBarrack troopInBarrack;
+                int i = 1;
+                while(true){
+                    System.out.println("============================================ Lan while thu: " + i);
+                    try {
+                        troopInBarrack = barrackQueue.getTroopByPosition(0);
+                    } catch (Exception e) {
+                        System.out.println("============================================ Loi o day " + e);
+                        return;
+                    }
+                    
+                    amountTrainedTroop = time_da_chay / (troopInBarrack.trainingTime * 1000);
+                    System.out.println("============================================ Amount Trained Troops: " + amountTrainedTroop);
+                    if(amountTrainedTroop >= troopInBarrack.amount){
+                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
+                        barrackQueue.updateQueue(troopInBarrack.currentPosition);
+                        troopInBarrack.currentPosition = -1;
+                        increaseAmountTroop(user, troopInBarrack.name, troopInBarrack.amount);
+                         
+                        barrackQueue.amountItemInQueue--;
+                        barrackQueue.totalTroopCapacity -= troopInBarrack.amount * troopInBarrack.housingSpace;
+                        troopInBarrack.amount = 0;
+                        if(amountTrainedTroop > troopInBarrack.amount){
+                            if(barrackQueue.amountItemInQueue == 0){
+                                break;
+                            }
+                            time_da_chay -=  amountTrainedTroop * troopInBarrack.trainingTime * 1000;
+                            System.out.println("============================================ amountTrainedTroop > troopInBarrack");
+                        }else{
+                            System.out.println("============================================ amountTrainedTroop = troopInBarrack");
+                            barrackQueue.startTime = System.currentTimeMillis();
+                            break;
+                        }
+                    }else{
+                        System.out.println("============================================ amountTrainedTroop < troopInBarrack");
+                        increaseAmountTroop(user, troopInBarrack.name, (int) amountTrainedTroop);
+                        troopInBarrack.amount -= amountTrainedTroop;
+                        barrackQueue.totalTroopCapacity -= amountTrainedTroop * troopInBarrack.housingSpace;
+                        barrackQueue.startTime = System.currentTimeMillis() - (time_da_chay - amountTrainedTroop * troopInBarrack.trainingTime);
+                        break;
+                    }
+                    i++;
+                }
+            } 
         }
     }
     

@@ -46,7 +46,6 @@ public class ResponseRequestBarrackQueueInfo extends BaseMsg {
                 //type cua troop
                 putStr(bf, troopType);
                 bf.putInt(troopInBarrack.amount);
-                putBoolean(bf, troopInBarrack.isInQueue);
                 bf.putInt(troopInBarrack.currentPosition);
             }
         }

@@ -611,7 +611,7 @@ MapInfoHandler extends BaseClientRequestHandler {
 
     private void processGetServerTime(User user, RequestGetServerTime finish_time) {
         try {
-            System.out.println("getID:" + user.getId() );   
+//            System.out.println("getID:" + user.getId() );   
             long time_cur = System.currentTimeMillis();
             send(new ResponseRequestServerTime(time_cur), user);
         } catch (Exception e) {

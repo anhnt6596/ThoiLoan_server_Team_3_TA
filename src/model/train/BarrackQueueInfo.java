@@ -42,7 +42,6 @@ public class BarrackQueueInfo extends DataModel {
                 System.out.println("-------------- Troop thu " + j);
                 System.out.println("Type troop: --- " + troopType);
                 System.out.println("Amount troop in queue: --- " + troopInBarrack.amount);
-                System.out.println("Troop is in queue?: --- " + troopInBarrack.isInQueue);
                 System.out.println("Current Position of troop in queue: --- " + troopInBarrack.currentPosition);
                 j++;
             }
