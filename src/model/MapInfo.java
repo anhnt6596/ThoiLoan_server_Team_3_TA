@@ -416,12 +416,24 @@ public class MapInfo extends DataModel{
         }
     }
 
-    public int getRequire(String capacity_type) {
+    public int getRequire(String capacity_type, String sto_type) {
+        int ans =0;
         for (Building building: this.listBuilding){
             if (building.type.equals(ServerConstant.town)){
                 try {
                     JSONObject town = ServerConstant.config.getJSONObject(ServerConstant.town).getJSONObject(Integer.toString(building.level));
-                    return(town.getInt(capacity_type));
+                    ans +=(town.getInt(capacity_type));
+                    
+                } catch (JSONException e){
+                    
+                    return 0;
+                }     
+                
+            }
+            if (building.type.equals(sto_type)&& (building.status.equals(ServerConstant.complete_status) || building.status.equals(ServerConstant.upgrade_status)) ){
+                try {
+                    JSONObject town = ServerConstant.config.getJSONObject(sto_type).getJSONObject(Integer.toString(building.level));
+                    ans +=(town.getInt("capacity"));
                     
                 } catch (JSONException e){
                     
@@ -430,7 +442,7 @@ public class MapInfo extends DataModel{
                 
             }
         }
-        return 0;
+        return ans;
         
     }
 }

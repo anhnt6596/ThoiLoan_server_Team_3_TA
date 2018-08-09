@@ -13,6 +13,8 @@ import cmd.obj.map.MapArray;
 
 import cmd.obj.map.Obs;
 
+import cmd.receive.harvest.RequestDoHarvest;
+import cmd.receive.harvest.RequestGetHarvestInfo;
 import cmd.receive.map.RequestUpgradeConstruction;
 import cmd.receive.map.RequestAddConstruction;
 import cmd.receive.map.RequestCancleConstruction;
@@ -39,6 +41,7 @@ import cmd.send.demo.ResponseRequestServerTime;
 import cmd.send.demo.ResponseRequestUpgradeConstruction;
 import cmd.send.demo.ResponseRequestUserInfo;
 
+import cmd.send.harvest.ResponseDoHarvest;
 import cmd.send.train.ResponseRequestBarrackQueueInfo;
 
 import java.awt.Point;
@@ -133,6 +136,16 @@ MapInfoHandler extends BaseClientRequestHandler {
                     RequestGetServerTime server_time = new RequestGetServerTime(dataCmd);
                     processGetServerTime(user,server_time);
                     break;
+                case CmdDefine.GET_HARVEST_INFO:
+                    //System.out.println("GET_SERVER_TIME");
+                    RequestGetHarvestInfo harvest_info = new RequestGetHarvestInfo(dataCmd);
+                    processRequestGetHarvestInfo(user,harvest_info);
+                    break;
+                case CmdDefine.DO_HARVEST:
+                        //System.out.println("GET_SERVER_TIME");
+                        RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
+                        processDoHarvest(user, do_harvest);
+                        break;
             }
         } catch (Exception e) {
             logger.warn("DEMO HANDLER EXCEPTION " + e.getMessage());
@@ -363,6 +376,11 @@ MapInfoHandler extends BaseClientRequestHandler {
             //*------------------------------------------------
 //            logger.info(">>>>>>>>>>>>>in ra truoc khi upgrade>>>>>>>");
 //            mapInfo.print();
+        //neu la nha Resource thi thu hoac truoc
+            if (building.type.equals("RES_1") || building.type.equals("RES_2") || building.type.equals("RES_3")){
+                doHarvest(user,building.id);
+            }
+            
         int exchange_resource = 0;
         exchange_resource = checkResource(userInfo,(building.type),building.level+1);
             
@@ -597,6 +615,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 }
                 
                 mapInfo.listBuilding.get(finish_time.id).setStatus("complete");
+                mapInfo.listBuilding.get(finish_time.id).setStartTime();
             }
             
             mapInfo.saveModel(user.getId());
@@ -682,6 +701,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                     mapInfo.listBuilding.get(quick_finish.id).level ++;
                 }
                 mapInfo.listBuilding.get(quick_finish.id).setStatus(ServerConstant.complete_status);
+                mapInfo.listBuilding.get(quick_finish.id).setStartTime();
                 mapInfo.print();
                 
                 mapInfo.saveModel(user.getId());
@@ -785,9 +805,9 @@ MapInfoHandler extends BaseClientRequestHandler {
             int darkElixir = building.getGtoCancle(ServerConstant.darkElixir_resource);
             int coin = building.getGtoCancle(ServerConstant.coin_resource);
             
-            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity);    
-            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity);
-            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity);
+            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
+            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
+            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
             
             userInfo.addResource(gold,elixir,darkElixir,coin,gold_rq,elx_rq,dElx_rq);
             
@@ -796,6 +816,7 @@ MapInfoHandler extends BaseClientRequestHandler {
             }
             else if ((building.status.equals(ServerConstant.pending_status))){
                 mapInfo.listBuilding.get(cancle_construction.id).setStatus(ServerConstant.destroy_status);    
+                mapInfo.listBuilding.get(cancle_construction.id).setStartTime();
             }
             
             
@@ -850,9 +871,9 @@ MapInfoHandler extends BaseClientRequestHandler {
             int darkElixir = obs.getGtoRemove(ServerConstant.darkElixir_resource);
 //            int coin = obs.getGtoRemove(ServerConstant.coin_resource);
             
-            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity);    
-            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity);
-            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity);
+            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
+            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
+            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
             
             
             userInfo.addResource(gold,elixir,darkElixir,coin,gold_rq,elx_rq,dElx_rq);
@@ -866,5 +887,122 @@ MapInfoHandler extends BaseClientRequestHandler {
             
         }
     }
+
+    private void processRequestGetHarvestInfo(User user, RequestGetHarvestInfo harvest_info) {
+        }
+         private void processDoHarvest(User user, RequestDoHarvest do_harvest) {
+            logger.debug("Thu hoach mo id "+do_harvest.id);
+            
+            try {
+                MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+                if (mapInfo == null) {
+                    //send response error
+                    logger.info("Khong ton tai mapInfo");
+                    send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+                    return;
+                }
+                
+                ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+                if (userInfo == null) {
+                   ////send response error
+                    logger.debug("khong ton tai user");
+                   send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+                   return;
+                }
+                
+                Building building = mapInfo.listBuilding.get(do_harvest.id);
+                logger.debug("Mo "+building.type+" duoc thu hoach, trang thai: " + building.status);
+                if (!building.type.equals("RES_1") && !building.type.equals("RES_2") && !building.type.equals("RES_3")){
+                        logger.debug("Khong phai nha resource");
+                        send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+                        return;
+                    }
+                if (!building.status.equals(ServerConstant.complete_status)){
+                    logger.debug("Nha resource khong trong trang thai complete de co the xay duoc");
+                    send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+                    return;
+                }
+                
+                doHarvest(user, do_harvest.id);
+                
+                send(new ResponseDoHarvest(ServerConstant.SUCCESS), user);
+                
+            } catch (Exception e) {
+                logger.info("Khong thu hoach duoc");
+                send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+            }
+            
+            
+        }
+         private int timeToProductivity(String type, int level, long time_sanxuat) {
+            //Ham chuyen doi thoi gian (Milisecond) toi san luong
+            try {
+                logger.debug("type = "+type);
+                logger.debug("level = "+level);
+                
+                int unit_product = ServerConstant.configResource.getJSONObject(type).getJSONObject(Integer.toString(level)).getInt("productivity");
+                logger.debug("unit_product = "+unit_product);
+                time_sanxuat = time_sanxuat/1000;
+                logger.debug("time_sanxuat = "+time_sanxuat);
+                float ans = (float)(time_sanxuat * (float)(unit_product) /3600);
+                int capacity = ServerConstant.configResource.getJSONObject(type).getJSONObject(Integer.toString(level)).getInt("capacity");
+                logger.info("capacity = "+capacity);
+                logger.info("ans = "+ans);
+                if (ans>capacity){
+                    logger.info("san luong vuot qua suc chua cua nha");
+                    logger.info(type+" level= "+ level);
+                    ans = capacity;
+                }
+                
+                return (int) ans;
+                
+                
+            } catch (JSONException e) {
+                logger.debug("Khong lay duoc san luong");
+                logger.debug(type+" level= "+ level);
+                return -1;
+            }
+        }
+         private void doHarvest(User user, int id) {
+            ZPUserInfo userInfo;
+            try {
+                userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+                MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+                Building building = mapInfo.listBuilding.get(id);
+                
+                
+                Long time_sanxuat = System.currentTimeMillis() - building.timeStart;
+                logger.debug("timeStart = "+building.timeStart);
+                logger.debug("time now = "+System.currentTimeMillis());
+                logger.debug("time sanxuat = "+ time_sanxuat);
+                mapInfo.listBuilding.get(id).setStartTime();
+                int productivity = timeToProductivity(building.type,building.level,time_sanxuat);
+                logger.debug("productivity = " + productivity);
+                int gold = 0, elixir =0, darkElixir=0, coin =0 ;
+                switch (building.type){
+                    case "RES_1":
+                        gold = productivity;
+                        break;
+                    case "RES_2":
+                        elixir = productivity;
+                        break;
+                    case "RES_3":
+                        darkElixir = productivity;
+                        break;
+                }
+                
+                int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
+                int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
+                int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
+                
+                userInfo.addResource(gold,elixir,darkElixir,coin,gold_rq,elx_rq,dElx_rq);
+                logger.info("Add them gold, elixir, dark, coin= "+gold+" "+elixir+" "+darkElixir+" "+coin);
+                userInfo.saveModel(user.getId());
+                mapInfo.saveModel(user.getId());
+                
+            } catch (Exception e) {
+            }
+            
+        }
 }
 

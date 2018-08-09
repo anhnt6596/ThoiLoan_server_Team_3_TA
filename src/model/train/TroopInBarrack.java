@@ -40,7 +40,6 @@ public class TroopInBarrack extends DataModel {
         initConfig();
     }
     
-    
     public void initConfig() {
         JSONObject troopBaseConfig = ServerConstant.configTroopBase;
         

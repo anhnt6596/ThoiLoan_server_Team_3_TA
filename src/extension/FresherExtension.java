@@ -38,6 +38,7 @@ import util.GuestLogin;
 import util.metric.LogObject;
 import util.metric.MetricLog;
 
+import service.HarvestHandle;
 import util.server.ServerConstant;
 import util.server.ServerLoop;
 
