@@ -912,7 +912,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 
                 Building building = mapInfo.listBuilding.get(do_harvest.id);
                 logger.debug("Mo "+building.type+" duoc thu hoach, trang thai: " + building.status);
-                if (!building.type.equals("RES_1") || !building.type.equals("RES_2") || !building.type.equals("RES_3")){
+                if (!building.type.equals("RES_1") && !building.type.equals("RES_2") && !building.type.equals("RES_3")){
                         logger.debug("Khong phai nha resource");
                         send(new ResponseDoHarvest(ServerConstant.ERROR), user);
                         return;
@@ -934,20 +934,28 @@ MapInfoHandler extends BaseClientRequestHandler {
             
             
         }
-         private int timeToProductivity(String type, int level, Long time_sanxuat) {
+         private int timeToProductivity(String type, int level, long time_sanxuat) {
             //Ham chuyen doi thoi gian (Milisecond) toi san luong
             try {
+                logger.debug("type = "+type);
+                logger.debug("level = "+level);
+                
                 int unit_product = ServerConstant.configResource.getJSONObject(type).getJSONObject(Integer.toString(level)).getInt("productivity");
-                
-                int ans = (int) ((time_sanxuat / (1000 * 60 * 60)) * unit_product);
+                logger.debug("unit_product = "+unit_product);
+                time_sanxuat = time_sanxuat/1000;
+                logger.debug("time_sanxuat = "+time_sanxuat);
+                float ans = (float)(time_sanxuat * (float)(unit_product) /3600);
                 int capacity = ServerConstant.configResource.getJSONObject(type).getJSONObject(Integer.toString(level)).getInt("capacity");
-                
+                logger.info("capacity = "+capacity);
+                logger.info("ans = "+ans);
                 if (ans>capacity){
                     logger.info("san luong vuot qua suc chua cua nha");
                     logger.info(type+" level= "+ level);
                     ans = capacity;
                 }
-                return ans;
+                
+                return (int) ans;
+                
                 
             } catch (JSONException e) {
                 logger.debug("Khong lay duoc san luong");
@@ -964,6 +972,9 @@ MapInfoHandler extends BaseClientRequestHandler {
                 
                 
                 Long time_sanxuat = System.currentTimeMillis() - building.timeStart;
+                logger.debug("timeStart = "+building.timeStart);
+                logger.debug("time now = "+System.currentTimeMillis());
+                logger.debug("time sanxuat = "+ time_sanxuat);
                 mapInfo.listBuilding.get(id).setStartTime();
                 int productivity = timeToProductivity(building.type,building.level,time_sanxuat);
                 logger.debug("productivity = " + productivity);
@@ -985,7 +996,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
                 
                 userInfo.addResource(gold,elixir,darkElixir,coin,gold_rq,elx_rq,dElx_rq);
-                
+                logger.info("Add them gold, elixir, dark, coin= "+gold+" "+elixir+" "+darkElixir+" "+coin);
                 userInfo.saveModel(user.getId());
                 mapInfo.saveModel(user.getId());
                 
