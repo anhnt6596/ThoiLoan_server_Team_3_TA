@@ -61,7 +61,7 @@ public class FresherExtension extends BZExtension {
         addRequestHandler(UserHandler.USER_MULTI_IDS, UserHandler.class);
         //addRequestHandler(DemoHandler.DEMO_MULTI_IDS, DemoHandler.class);
         addRequestHandler(MapInfoHandler.MAPINFO_MULTI_IDS, MapInfoHandler.class);
-        //addRequestHandler(TroopHandle.TROOP_MULTI_IDS, TroopHandle.class);
+        addRequestHandler(TroopHandle.TROOP_MULTI_IDS, TroopHandle.class);
         
         addRequestHandler(TrainTroopHandle.TRAINTROOP_MULTI_IDS, TrainTroopHandle.class);
 
