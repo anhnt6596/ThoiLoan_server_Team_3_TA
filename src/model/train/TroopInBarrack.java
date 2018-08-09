@@ -40,22 +40,6 @@ public class TroopInBarrack extends DataModel {
         initConfig();
     }
     
-    //Level truyen vao lay trong TroopInfo
-    public void getCost(int level) {
-        JSONObject troopConfig = ServerConstant.configTroop;
-        try {
-            trainingElixir = troopConfig.getJSONObject(name).getJSONObject(Integer.toString(level)).getInt("trainingElixir");
-        } catch (JSONException e) {
-            
-        }
-        try {
-            trainingDarkElixir = troopConfig.getJSONObject(name).getJSONObject(Integer.toString(level)).getInt("trainingDarkElixir");
-        } catch (JSONException e) {
-            
-        }
-    }
-    
-    
     public void initConfig() {
         JSONObject troopBaseConfig = ServerConstant.configTroopBase;
         

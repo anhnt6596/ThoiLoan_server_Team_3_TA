@@ -26,6 +26,12 @@ import cmd.send.train.ResponseRequestBarrackQueueInfo;
 import cmd.send.train.ResponseRequestFinishTimeTrainTroop;
 import cmd.send.train.ResponseRequestTrainTroop;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
+import java.util.List;
+
+import model.Building;
 import model.MapInfo;
 import model.Troop;
 import model.TroopInfo;
@@ -115,6 +121,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         try {
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
             if (userInfo == null) {
+                System.out.println("======================= userInfo null ======================");
                //send response error
                send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
                return;
@@ -122,7 +129,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             
             BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
             if(barrackQueueInfo == null){
-                System.out.println("======================= BarrackQueueInfo null ======================");
+                System.out.println("======================= BarrackQueueInfo null 1======================");
                 //send response error
                 send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
                 return;
@@ -130,7 +137,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             
             BarrackQueue barrackQueue = barrackQueueInfo.barrackQueueMap.get(packet.idBarrack);
             if(barrackQueue == null){
-                System.out.println("======================= BarrackQueue null ======================");
+                System.out.println("======================= BarrackQueue null 2======================");
                 //send response error
                 send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
                 return;
@@ -146,13 +153,19 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 System.out.println("Queue length: " + barrackQueue.queueLength);
                 System.out.println("Barrack Level: " + barrackQueue.barrackLevel);
                 //send response error
+                System.out.println("======================= check capacity false======================");
                 send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
                 return;
             }
             
-            //
-            
             //check tai nguyen
+            int levelTroop = getTroopLevel(user, packet.typeTroop);
+            int trainingElixir = getElixirCost(packet.typeTroop, levelTroop);
+            int trainingDarkElixir = getDarkElixirCost(packet.typeTroop, levelTroop);
+            
+            int g = checkResource(userInfo, trainingElixir, trainingDarkElixir);
+            reduceUserResources(userInfo, trainingElixir, trainingDarkElixir, g);
+            userInfo.saveModel(user.getId());
             
             
             //Truoc
@@ -230,11 +243,6 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 return;
             }
             
-            //
-            
-            //check tai nguyen
-            
-            
             //Truoc
             System.out.println("============================================TRUOC");
             System.out.println("totalTroopCapacity: " + barrackQueue.totalTroopCapacity);
@@ -258,6 +266,8 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 troop.currentPosition = -1;
             }
             
+            
+            //refund tai nguyen
             
             
             System.out.println("============================================SAU");
@@ -448,6 +458,119 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 }
             } 
         }
+    }
+    
+    
+    public int getElixirCost(String troopType, int level) {
+            JSONObject troopConfig = ServerConstant.configTroop;
+            int trainingElixir = 0;
+            try {
+                trainingElixir = troopConfig.getJSONObject(troopType).getJSONObject(Integer.toString(level)).getInt("trainingElixir");
+            } catch (JSONException e) {
+                
+            }
+            return trainingElixir;
+        }
+        
+        public int getDarkElixirCost(String troopType, int level) {
+            JSONObject troopConfig = ServerConstant.configTroop;
+            int trainingDarkElixir = 0;
+            try {
+                trainingDarkElixir = troopConfig.getJSONObject(troopType).getJSONObject(Integer.toString(level)).getInt("trainingDarkElixir");
+            } catch (JSONException e) {
+                  
+            }
+            return trainingDarkElixir;
+        }
+        
+        private int getTroopLevel(User user, String type) {
+            try {
+                TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+                Troop troop = troopInfo.troopMap.get(type);
+                return (int) troop.level;
+            } catch (Exception e) {
+                return -1;
+            }
+        }
+        
+        private int elixirToG(int elixir_bd) {
+            return elixir_bd;
+        }
+
+        private int darkElixirToG(int darkElixir_bd) {
+            return darkElixir_bd;
+        }
+        
+        private int checkResource(ZPUserInfo user, int elixir, int darkElixir) {
+            int g = 0;
+            
+            if (user.elixir < elixir){
+                g += elixirToG(elixir - user.elixir);                    
+            };
+            
+            if (user.darkElixir < darkElixir){
+                g += darkElixirToG(darkElixir - user.darkElixir);                    
+            };
+            
+            return g;
+        }
+        
+        public void reduceUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
+            //tru elixir
+            if (user.elixir < elixir){
+                user.elixir = 0;     
+            }else {
+                user.elixir = user.elixir - elixir;
+            }
+            if (user.darkElixir < darkElixir){
+                user.darkElixir = 0;
+            }else {
+                user.darkElixir = user.darkElixir - darkElixir;
+            }
+            
+            user.coin = user.coin - coin;
+        }
+        
+        
+    public void increaseUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
+       //tang tien cua ng choi
+    }
+    
+    public int getTotalCapacityAMCs(User user) {
+        int total = 0;
+        MapInfo mapInfo;
+        try {
+            mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+        } catch (Exception e) {
+            return 0;
+        }
+        
+        JSONObject troopBaseConfig;
+        try {
+            troopBaseConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
+        } catch (JSONException e) {
+            return 0;
+        }
+
+
+        List<Building> listBuilding = mapInfo.listBuilding;
+
+        Iterator<Building> i = listBuilding.iterator();
+        while (i.hasNext()) {
+            Building build = i.next();
+            
+            if((build.status == "complete" || build.status == "upgrade") && (build.type == "AMC_1")){
+                int capacity;
+
+                try {
+                    capacity = troopBaseConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
+                } catch (JSONException e) {
+                    return 0;
+                }
+                total += capacity;
+            }
+        }
+        return total;
     }
     
     
