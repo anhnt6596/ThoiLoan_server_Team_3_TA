@@ -24,6 +24,9 @@ public class ServerConstant {
     public static final int WEIGHT_MAP = 40;
     
     public static final String town="TOW_1";
+    public static final String gold_sto="STO_1";
+    public static final String elixir_sto="STO_2";
+    public static final String darkElixir_sto="STO_3";
     
     public static final String complete_status = "complete"; //nha ranh
     public static final String pending_status = "pending"; // nha dang xay
