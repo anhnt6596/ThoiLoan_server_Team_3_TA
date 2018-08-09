@@ -16,12 +16,12 @@ import cmd.obj.map.Obs;
 import model.Troop;
 import model.TroopInfo;
 
-public class ResponseResearchComplete extends BaseMsg {
+public class ResponseQuickFinishResearch extends BaseMsg {
 //    TroopInfo troopInfo;
     private short validate;
 
-    public ResponseResearchComplete(short s) {
-        super(CmdDefine.RESEARCH_TROOP_COMPLETE);
+    public ResponseQuickFinishResearch(short s) {
+        super(CmdDefine.RESEARCH_TROOP_QUICK_FINISH);
         this.validate = s;
     }
 

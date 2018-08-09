@@ -29,6 +29,7 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.json.JSONObject;
 
 import service.MapInfoHandler;
+import service.TrainTroopHandle;
 import service.TroopHandle;
 import service.UserHandler;
 
@@ -60,6 +61,8 @@ public class FresherExtension extends BZExtension {
         //addRequestHandler(DemoHandler.DEMO_MULTI_IDS, DemoHandler.class);
         addRequestHandler(MapInfoHandler.MAPINFO_MULTI_IDS, MapInfoHandler.class);
         addRequestHandler(TroopHandle.TROOP_MULTI_IDS, TroopHandle.class);
+        
+        addRequestHandler(TrainTroopHandle.TRAINTROOP_MULTI_IDS, TrainTroopHandle.class);
 
         trace(" Event Handler ");
         addEventHandler(BZEventType.USER_LOGIN, LoginSuccessHandler.class);

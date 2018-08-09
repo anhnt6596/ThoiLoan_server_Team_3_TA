@@ -26,7 +26,7 @@ public class ResponseRequestServerTime extends BaseMsg {
         ByteBuffer bf = makeBuffer();
         
         bf.putLong(this.time);
-        System.out.println("ResponseRequestServerTime "+ this.time);
+//        System.out.println("ResponseRequestServerTime "+ this.time);
         return packBuffer(bf);
     }
 }

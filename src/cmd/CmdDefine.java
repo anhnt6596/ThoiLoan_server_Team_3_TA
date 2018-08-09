@@ -57,4 +57,12 @@ public class CmdDefine {
     public static final short GET_TROOP_INFO = 4001;
     public static final short RESEARCH_TROOP = 4002;
     public static final short RESEARCH_TROOP_COMPLETE = 4003;
+    
+    public static final short GET_BARRACK_QUEUE_INFO = 7001;
+    public static final short TRAIN_TROOP = 7002;
+    public static final short CANCEL_TRAIN_TROOP = 7003;
+    public static final short QUICK_FINISH_TRAIN_TROOP = 7004;
+    public static final short FINISH_TIME_TRAIN_TROOP = 7005;
+
+    public static final short RESEARCH_TROOP_QUICK_FINISH = 4004;
 }

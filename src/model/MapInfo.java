@@ -1,5 +1,7 @@
 package model;
 
+import bitzero.server.entities.User;
+
 import bitzero.util.common.business.CommonHandle;
 import bitzero.util.socialcontroller.bean.UserInfo;
 
@@ -24,12 +26,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import java.util.Random;
 
 import java.util.TimeZone;
+
+import model.train.BarrackQueue;
+import model.train.BarrackQueueInfo;
+
+import model.train.TroopInBarrack;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -215,7 +224,10 @@ public class MapInfo extends DataModel{
 
 
     public int getBuilderNotFree() {
-        checkStatus();
+        try {
+            checkStatus(null);
+        } catch (Exception e) {
+        }
         int kq = 0;
         for (Building building : this.listBuilding){
             System.out.println("check status - building"+building.type+" , status = "+building.status+ "time_Start = "+ building.timeStart);
@@ -297,7 +309,7 @@ public class MapInfo extends DataModel{
         }
     }
 
-    public void checkStatus() {
+    public void checkStatus(User user) {
         System.out.println("***********checkbuilding **********************");
         for (Building building : this.listBuilding){
             if ( !building.status.equals(ServerConstant.destroy_status)){
@@ -310,14 +322,86 @@ public class MapInfo extends DataModel{
                 
                 if ((!building.status.equals("complete")) &&(distance > time_xay) && building.timeStart!=-1){
                     if (building.status.equals("upgrade")){
+                        //Check if BAR_1
+                        if(building.type.equals("BAR_1") && user != null){
+                            System.out.println("==============================CHECK STATUS FINISH UPGRADE BAR_1===========================");
+                            this.changeBarrackQueueInfoWhenBarrackUpgraded(user, building.id);
+                        }
+                        
                         building.level ++;
+                    }else{
+                        //Check if BAR_1
+                        if(building.type.equals("BAR_1") && user != null){
+                            System.out.println("==============================CHECK STATUS FINISH BUILD BAR_1===========================");
+                            this.changeBarrackQueueInfoWhenBarrackBuilt(user, building.id);
+                        }
                     }
                     building.setStatus("complete");
-                    
                 }
             }
             //System.out.println(building.type+" "+"time start: "+building.timeStart+" "+"distance: "+distance+"status "+building.status);
         }
+    }
+    
+    private void changeBarrackQueueInfoWhenBarrackUpgraded(User user, int id) {
+        BarrackQueueInfo barrackQueueInfo;
+        try {
+            barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+        } catch (Exception e) {
+            System.out.println("======================= Khong get duoc BarrackQueueInfo tu MapInfo ======================");
+            return;
+        }
+
+        BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
+        newBarrackQueue.barrackLevel++;
+        Map <String, TroopInBarrack> newTroopListMap = newBarrackQueue.troopListMap;
+        
+        JSONObject barrack_1Config;
+        try {
+            barrack_1Config = ServerConstant.configBarrack.getJSONObject("BAR_1");
+        } catch (JSONException e) {
+            return;
+        }
+        try {
+            String troopType = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.barrackLevel)).getString("unlockedUnit");
+            TroopInBarrack troop = new TroopInBarrack(troopType);
+            newTroopListMap.put(troopType, troop);                         
+        } catch (JSONException e) {
+            
+        }
+        
+        barrackQueueInfo.barrackQueueMap.put(id, newBarrackQueue);
+        try{
+            barrackQueueInfo.saveModel(user.getId());
+        }catch (Exception e) {
+            System.out.println("======================= Khong save duoc Model BarrackQueueInfo tu MapInfo ======================");
+        }
+        barrackQueueInfo.print();
+    }
+    
+    private void changeBarrackQueueInfoWhenBarrackBuilt(User user, int id) {
+        BarrackQueueInfo barrackQueueInfo;
+        try {
+            barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+        } catch (Exception e) {
+            System.out.println("======================= Khong get duoc BarrackQueueInfo tu MapInfo ======================");
+            System.out.println("======================= Loi la " + e);
+            return;
+        }
+
+        if(barrackQueueInfo == null){
+            System.out.println("======================= BarrackQueueInfo null ======================");
+            barrackQueueInfo = new BarrackQueueInfo();
+        }
+        BarrackQueue barrackQueue = new BarrackQueue(1);
+        barrackQueueInfo.barrackQueueMap.put(id, barrackQueue);
+        try{
+            barrackQueueInfo.saveModel(user.getId());
+        }catch (Exception e) {
+            System.out.println("======================= Khong save duoc Model BarrackQueueInfo tu MapInfo ======================");
+            System.out.println("======================= Loi la " + e);
+        }
+        barrackQueueInfo.print();
     }
     
     public void upgradeBuilding(int _id){
