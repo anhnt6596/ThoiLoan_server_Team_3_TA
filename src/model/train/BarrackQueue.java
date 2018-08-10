@@ -46,6 +46,19 @@ public class BarrackQueue extends DataModel {
         }
     }
     
+    public void doReset() {
+        amountItemInQueue = 0;
+        totalTroopCapacity = 0;
+        startTime = 0L;
+        
+        TroopInBarrack troopInBarrack;
+        for (String troopType : troopListMap.keySet()) {
+            troopInBarrack = troopListMap.get(troopType);
+            troopInBarrack.amount = 0;
+            troopInBarrack.currentPosition = -1;
+        }
+    }
+    
     public void updateQueue(int whoDropId) {
         TroopInBarrack troopInBarrack;
         for (String troopType : troopListMap.keySet()) {
