@@ -106,8 +106,6 @@ public class Building{
             if ( time%60000>0){
                 minute++;
             }
-        
-        
         return (int)(minute);
     }
 
