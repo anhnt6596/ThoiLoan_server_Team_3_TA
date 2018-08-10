@@ -1,4 +1,4 @@
-package cmd.receive.train;
+package cmd.receive.troop;
 
 import bitzero.server.extensions.data.BaseCmd;
 import bitzero.server.extensions.data.DataCmd;

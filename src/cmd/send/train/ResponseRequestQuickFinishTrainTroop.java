@@ -1,4 +1,4 @@
-package cmd.receive.train;
+package cmd.send.train;
 
 import bitzero.server.extensions.data.BaseMsg;
 

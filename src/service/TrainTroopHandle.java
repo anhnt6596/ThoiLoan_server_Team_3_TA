@@ -13,15 +13,10 @@ import cmd.receive.train.RequestBarrackQueueInfo;
 import cmd.receive.train.RequestCancelTrainTroop;
 import cmd.receive.train.RequestFinishTimeTrainTroop;
 import cmd.receive.train.RequestTrainTroop;
-import cmd.receive.train.ResponseRequestQuickFinishTrainTroop;
+import cmd.send.train.ResponseRequestQuickFinishTrainTroop;
 import cmd.receive.troop.RequestQuickFinishTrainTroop;
-import cmd.receive.troop.RequestTroopInfo;
 
-import cmd.send.demo.ResponseQuickFinishResearch;
-import cmd.send.demo.ResponseRequestMapInfo;
 import cmd.send.demo.ResponseRequestQuickFinish;
-import cmd.send.demo.ResponseResearch;
-import cmd.send.demo.ResponseTroopInfo;
 
 import cmd.send.train.ResponseRequestCancelTrainTroop;
 import cmd.send.train.ResponseRequestBarrackQueueInfo;
@@ -30,6 +25,7 @@ import cmd.send.train.ResponseRequestFinishTimeTrainTroop;
 import cmd.send.train.ResponseRequestTrainTroop;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import java.util.List;
@@ -450,6 +446,13 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             long timeTrain;
             Map <String, TroopInBarrack> troopListMap = barrackQueue.troopListMap;
             
+            TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+            if (troopInfo == null) {
+                //send response error
+                send(new ResponseRequestQuickFinishTrainTroop(ServerConstant.ERROR), user);
+                return;
+            }
+            
             int time = 0;
             TroopInBarrack troopInBarrack;
             for (String troopType : troopListMap.keySet()) {
@@ -461,7 +464,14 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 }
                 
                 time += troopInBarrack.amount * timeTrain;
+                
+                Troop troopObj = troopInfo.troopMap.get(troopType);
+                troopObj.population += troopInBarrack.amount;
+                troopInfo.troopMap.put(troopType, troopObj);
             }
+            
+            troopInfo.saveModel(user.getId());
+            
             
             reduceUserResources(userInfo, 0, 0, timeToG(time));
             userInfo.saveModel(user.getId());
@@ -469,7 +479,8 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             System.out.println("totalTroopCapacity: " + barrackQueue.totalTroopCapacity);
             System.out.println("amountItemInQueue: " + barrackQueue.amountItemInQueue);
             
-            troopListMap.clear();
+//            troopListMap.clear();
+            barrackQueue.doReset();            
             
             barrackQueueInfo.barrackQueueMap.put(packet.idBarrack, barrackQueue);
             barrackQueueInfo.saveModel(user.getId());
