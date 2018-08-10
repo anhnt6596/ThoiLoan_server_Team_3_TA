@@ -354,6 +354,10 @@ public class MapInfo extends DataModel{
 
         BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
         newBarrackQueue.barrackLevel++;
+        
+        //Dat lai startTime cho barrack
+        newBarrackQueue.startTime = System.currentTimeMillis() - newBarrackQueue.startTime;
+        
         Map <String, TroopInBarrack> newTroopListMap = newBarrackQueue.troopListMap;
         
         JSONObject barrack_1Config;

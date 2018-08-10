@@ -571,7 +571,29 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
     }
     
     
-    public int getElixirCost(String troopType, int level) {
+    public void checkFirstTest(BarrackQueueInfo barrackQueueInfo, User user) {
+        //Cap nhat capacity AMCs
+        int totalAMCsCapacity = getTotalCapacityAMCs(user);
+        
+        //So linh tinh tu luc off
+        int troopCapacityBefore = getCurrentCapacityTroop(user);
+        
+        //Thoi diem offline
+        long timeOff = barrackQueueInfo.getMaxStartTime();
+        long timeCurrent = System.currentTimeMillis();
+        
+        long deltaTime = timeCurrent - timeOff;
+        
+        //For voi tung barrack queue
+        BarrackQueue barrackQueue;
+        for (Integer id : barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
+            
+        }
+            
+    }
+    
+    private int getElixirCost(String troopType, int level) {
             JSONObject troopConfig = ServerConstant.configTroop;
             int trainingElixir = 0;
             try {
@@ -582,7 +604,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             return trainingElixir;
         }
         
-    public int getDarkElixirCost(String troopType, int level) {
+    private int getDarkElixirCost(String troopType, int level) {
         JSONObject troopConfig = ServerConstant.configTroop;
         int trainingDarkElixir = 0;
         try {
@@ -629,7 +651,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         return g;
     }
         
-    public void reduceUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
+    private void reduceUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
         //tru elixir
         if (user.elixir < elixir){
             user.elixir = 0;     
@@ -645,11 +667,11 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         user.coin = user.coin - coin;
     }
         
-    public void increaseUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
+    private void increaseUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
        //tang tien cua ng choi
     }
     
-    public int getTotalCapacityAMCs(User user) {
+    private int getTotalCapacityAMCs(User user) {
         int total = 0;
         MapInfo mapInfo;
         try {
@@ -658,9 +680,9 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             return 0;
         }
         
-        JSONObject troopBaseConfig;
+        JSONObject amcConfig;
         try {
-            troopBaseConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
+            amcConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
         } catch (JSONException e) {
             return 0;
         }
@@ -676,13 +698,39 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 int capacity;
 
                 try {
-                    capacity = troopBaseConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
+                    capacity = amcConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
                 } catch (JSONException e) {
                     return 0;
                 }
                 total += capacity;
             }
         }
+        return total;
+    }
+    
+    private int getCurrentCapacityTroop(User user) {
+        int total = 0;
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return 0;
+        }
+        
+        JSONObject troopBaseConfig = ServerConstant.configTroopBase;
+        
+        int space;
+        Troop troop;
+        for (String troopType : troopInfo.troopMap.keySet()) {
+            troop = troopInfo.troopMap.get(troopType);
+            try {
+                space = troopBaseConfig.getJSONObject(troopType).getInt("housingSpace");
+            } catch (JSONException e) {
+                return 0;
+            }
+            total += space * troop.population;
+        }
+        
         return total;
     }
     

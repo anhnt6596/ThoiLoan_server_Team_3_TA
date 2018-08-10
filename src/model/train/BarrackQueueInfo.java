@@ -18,6 +18,18 @@ public class BarrackQueueInfo extends DataModel {
         //Lúc init chua có barrack nào
     }
     
+    public long getMaxStartTime() {
+        long maxTime = 0;
+        BarrackQueue barrackQueue;
+        for (Integer id : barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueMap.get(id);
+            if(barrackQueue.startTime > maxTime){
+                maxTime = barrackQueue.startTime;
+            }
+        }
+        return maxTime;
+    }
+    
     //In ra
     public void print() {
         System.out.println("======================= BarrackQueueInfo ======================");
