@@ -35,10 +35,7 @@ import cmd.send.demo.ResponseTroopInfo;
 
 import extension.FresherExtension;
 
-import java.util.Iterator;
 import java.util.List;
-
-import java.util.Map;
 
 import model.Building;
 import model.MapInfo;
@@ -102,29 +99,6 @@ public class TroopHandle extends BaseClientRequestHandler {
                 System.out.println("==> troopInfo null");
                 troopInfo = new TroopInfo();
                 troopInfo.saveModel(user.getId());
-            } else {
-                Map troopMap = troopInfo.troopMap;
-                Iterator <Map.Entry<String, Troop>> it = troopMap.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<String, Troop> pair = it.next();
-                    Troop _troop = pair.getValue();
-                    String status = _troop.status;
-                    if (status.equals("researching")) {
-                        long startTime = _troop.startTime;
-                        long currentTime = System.currentTimeMillis();
-                        long passTime = currentTime - startTime;
-                        long requestTime = 1000 * ServerConstant.configTroop
-                            .getJSONObject(_troop.type)
-                            .getJSONObject(String.valueOf(_troop.level + 1))
-                            .getInt("researchTime");
-                        if (passTime >= requestTime) {
-                            _troop.levelUp();
-                            System.out.println("LOG: Cap nhat linh da nghien cuu xong luc offline: " + _troop.type);
-                            troopInfo.troopMap.put(_troop.type, _troop);
-                            troopInfo.saveModel(user.getId());
-                        }
-                    }
-                }
             }
             send(new ResponseTroopInfo(troopInfo), user);
         } catch (Exception e) {
@@ -168,15 +142,25 @@ public class TroopHandle extends BaseClientRequestHandler {
                         ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
                         int requiredElixir = troopNextLvInfo.getInt("researchElixir");
                         int requireDarkElixir = troopNextLvInfo.getInt("researchDarkElixir");
+                        int requireCoin = 0;
                         if (userInfo.elixir < requiredElixir || userInfo.darkElixir < requireDarkElixir) {
-                            userInfo.saveModel(user.getId());
-                            System.out.println("ERROR: Nguoi choi thieu tai nguyen de nang cap!");
-                            send(new ResponseResearch(ServerConstant.ERROR), user);
-                            return;
+                            if (userInfo.elixir < requiredElixir) {
+                                requireCoin += requiredElixir - userInfo.elixir;
+                                requiredElixir = userInfo.elixir;
+                            }
+                            if (userInfo.darkElixir < requireDarkElixir) {
+                                requireCoin += requireDarkElixir - userInfo.darkElixir;
+                                requireDarkElixir = userInfo.darkElixir;
+                            }
+                            if (userInfo.coin < requireCoin) {
+                                System.out.println("ERROR: Nguoi choi thieu tai nguyen de nang cap!");
+                                send(new ResponseResearch(ServerConstant.ERROR), user);
+                                return;
+                            }
                         }
                         //troopLevelUp(user, troop.type);
                         send(new ResponseResearch(ServerConstant.SUCCESS), user);
-                        this.startResearchTroop(user, troop.type, requiredElixir, requireDarkElixir);
+                        this.startResearchTroop(user, troop.type, requiredElixir, requireDarkElixir, requireCoin);
                         System.out.println("Yeu cau nghien cuu thanh cong_____SUCCESS");
                         return;
                     } else {
@@ -259,8 +243,7 @@ public class TroopHandle extends BaseClientRequestHandler {
                 send(new ResponseQuickFinishResearch(ServerConstant.ERROR), user);
                 return;
             } else {
-                int reqG = (int) timeLeft / 60000;
-                if (timeLeft % 60000 != 0) reqG += 1;
+                int reqG = (int) Math.ceil(timeLeft / 60000);
                 boolean ok = reduceG(user, reqG);
                 if(ok) {
                     System.out.println("SUCCESS: Nghien cuu thanh cong: " + reqG + "G.");
@@ -299,7 +282,7 @@ public class TroopHandle extends BaseClientRequestHandler {
         }
     }
 
-    private void startResearchTroop(User user, String type, int reqElixir, int reqDarkElixir) {
+    private void startResearchTroop(User user, String type, int reqElixir, int reqDarkElixir, int reqCoin) {
         try {
             TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
             Troop troop = troopInfo.troopMap.get(type);
@@ -309,7 +292,7 @@ public class TroopHandle extends BaseClientRequestHandler {
             troopInfo.saveModel(user.getId());
 
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
-            userInfo.reduceUserResources(0, reqElixir, reqDarkElixir, 0, "", false);
+            userInfo.reduceUserResources(0, reqElixir, reqDarkElixir, reqCoin, "", false);
             userInfo.saveModel(user.getId());
         } catch (Exception e) {
         }

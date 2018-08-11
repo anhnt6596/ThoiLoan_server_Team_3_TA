@@ -72,6 +72,7 @@ public class BarrackQueue extends DataModel {
         }
     }
     
+    
     public TroopInBarrack getTroopByPosition(int position) {
         TroopInBarrack troopInBarrack;
         for (String troopType : troopListMap.keySet()) {
