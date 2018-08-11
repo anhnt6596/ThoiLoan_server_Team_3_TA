@@ -35,7 +35,10 @@ import cmd.send.demo.ResponseTroopInfo;
 
 import extension.FresherExtension;
 
+import java.util.Iterator;
 import java.util.List;
+
+import java.util.Map;
 
 import model.Building;
 import model.MapInfo;
@@ -99,6 +102,28 @@ public class TroopHandle extends BaseClientRequestHandler {
                 System.out.println("==> troopInfo null");
                 troopInfo = new TroopInfo();
                 troopInfo.saveModel(user.getId());
+            } else {
+                Map troopMap = troopInfo.troopMap;
+                long i = 0;
+                Iterator<Map.Entry<String, Troop>> it = troopMap.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Troop> pair = it.next();
+                    Troop _troop = pair.getValue();
+                    if (_troop.status.equals("researching")) {
+                        long currentTime = System.currentTimeMillis();
+                        long startTime = _troop.startTime;
+                        long passTime = currentTime - startTime;
+                        long requestTime = 1000 * ServerConstant.configTroop
+                            .getJSONObject(troop.type)
+                            .getJSONObject(String.valueOf(_troop.level + 1))
+                            .getInt("researchTime");
+                        if (passTime >= requestTime) {
+                            _troop.levelUp();
+                            troopInfo.troopMap.put(_troop.type, _troop);
+                            troopInfo.saveModel(user.getId());
+                        }
+                    }
+                }
             }
             send(new ResponseTroopInfo(troopInfo), user);
         } catch (Exception e) {
