@@ -286,7 +286,7 @@ public class MapInfo extends DataModel{
         return (int)(minute);
     }
 
-    public void releaseBuilding() {
+    public void releaseBuilding(User user) {
         System.out.println(">>>>>releaseBuilding");
         long time = 999999999;
         int kq =-1;
@@ -303,9 +303,19 @@ public class MapInfo extends DataModel{
         if (this.listBuilding.get(kq).getStatus().equals("upgrade")){
             this.listBuilding.get(kq).level = this.listBuilding.get(kq).level +1;
             this.listBuilding.get(kq).setStatus("complete");
+            
+            if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
+                System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
+                this.changeBarrackQueueInfoWhenBarrackUpgraded(user, this.listBuilding.get(kq).id);
+            }
         } 
         else if (this.listBuilding.get(kq).getStatus().equals("pending")){
             this.listBuilding.get(kq).setStatus("complete");
+            
+            if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
+                System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
+                this.changeBarrackQueueInfoWhenBarrackBuilt(user, this.listBuilding.get(kq).id);
+            }
         }
     }
 
