@@ -114,7 +114,7 @@ public class TroopHandle extends BaseClientRequestHandler {
                         long startTime = _troop.startTime;
                         long passTime = currentTime - startTime;
                         long requestTime = 1000 * ServerConstant.configTroop
-                            .getJSONObject(troop.type)
+                            .getJSONObject(_troop.type)
                             .getJSONObject(String.valueOf(_troop.level + 1))
                             .getInt("researchTime");
                         if (passTime >= requestTime) {
