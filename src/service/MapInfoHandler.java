@@ -314,7 +314,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                     else {
                         //giai phong 1 ngoi nha pending
                         
-                        mapInfo.releaseBuilding(); 
+                        mapInfo.releaseBuilding(user); 
                         
                         mapInfo.addBuilding(add_construction.type, add_construction.posX, add_construction.posY,level, "pending");
                         
@@ -416,7 +416,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                     else {
                         //giai phong 1 ngoi nha pending
                         
-                        mapInfo.releaseBuilding(); 
+                        mapInfo.releaseBuilding(user); 
                         
                         mapInfo.print();
                         

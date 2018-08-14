@@ -511,7 +511,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
     
     
     private void checkFirst(BarrackQueueInfo barrackQueueInfo, User user) {
-        long time_da_chay;      //ms
+        long deltaTime;      //ms
         
         BarrackQueue barrackQueue;     
         for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
@@ -519,7 +519,20 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             if(barrackQueue.startTime == 0){
                 continue;
             }
-            time_da_chay = System.currentTimeMillis() - barrackQueue.startTime;
+            
+            //Neu trc currentTroop >= AMCs capacity thi khong can kiem tra
+            //Cap nhat capacity AMCs
+            int totalAMCsCapacity = getTotalCapacityAMCs(user);
+            //So linh tinh tu luc off
+            int troopCapacityBefore = getCurrentCapacityTroop(user);
+            
+            if(totalAMCsCapacity - troopCapacityBefore <= 0){
+                System.out.println("================================= Dang max capacity, khong the check finish time");
+                return;
+            }
+            
+            
+            deltaTime = System.currentTimeMillis() - barrackQueue.startTime;
             //troopList
             if(barrackQueue.amountItemInQueue > 0 && barrackQueue.totalTroopCapacity > 0){
                 long amountTrainedTroop = 0;
@@ -534,34 +547,33 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                         return;
                     }
                     
-                    amountTrainedTroop = time_da_chay / (troopInBarrack.trainingTime * 1000);
+                    amountTrainedTroop = deltaTime / (troopInBarrack.trainingTime * 1000);
                     System.out.println("============================================ Amount Trained Troops: " + amountTrainedTroop);
                     if(amountTrainedTroop >= troopInBarrack.amount){
                         System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
                         barrackQueue.updateQueue(troopInBarrack.currentPosition);
                         troopInBarrack.currentPosition = -1;
+                        //Tang so luong linh cua troop do
                         increaseAmountTroop(user, troopInBarrack.name, troopInBarrack.amount);
                          
                         barrackQueue.amountItemInQueue--;
                         barrackQueue.totalTroopCapacity -= troopInBarrack.amount * troopInBarrack.housingSpace;
+                        
                         troopInBarrack.amount = 0;
-                        if(amountTrainedTroop > troopInBarrack.amount){
-                            if(barrackQueue.amountItemInQueue == 0){
-                                break;
-                            }
-                            time_da_chay -=  amountTrainedTroop * troopInBarrack.trainingTime * 1000;
-                            System.out.println("============================================ amountTrainedTroop > troopInBarrack");
-                        }else{
-                            System.out.println("============================================ amountTrainedTroop = troopInBarrack");
-                            barrackQueue.startTime = System.currentTimeMillis();
+                        if(barrackQueue.amountItemInQueue == 0){
+                            barrackQueue.startTime = 0;
                             break;
                         }
-                    }else{
-                        System.out.println("============================================ amountTrainedTroop < troopInBarrack");
+                        deltaTime -=  amountTrainedTroop * troopInBarrack.trainingTime * 1000;
+                        if(deltaTime == 0){
+                            break;
+                        }                    
+                    }else if(amountTrainedTroop >= 1){
+                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
                         increaseAmountTroop(user, troopInBarrack.name, (int) amountTrainedTroop);
                         troopInBarrack.amount -= amountTrainedTroop;
                         barrackQueue.totalTroopCapacity -= amountTrainedTroop * troopInBarrack.housingSpace;
-                        barrackQueue.startTime = System.currentTimeMillis() - (time_da_chay - amountTrainedTroop * troopInBarrack.trainingTime);
+                        barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.trainingTime);
                         break;
                     }
                     i++;
@@ -578,19 +590,97 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         //So linh tinh tu luc off
         int troopCapacityBefore = getCurrentCapacityTroop(user);
         
+        //So capacity linh toi da co the train
+        int troopAvai = totalAMCsCapacity - troopCapacityBefore;
+        
+        
         //Thoi diem offline
         long timeOff = barrackQueueInfo.getMaxStartTime();
-        long timeCurrent = System.currentTimeMillis();
+        if(timeOff == 0) return;
+        long currentTime = System.currentTimeMillis();
         
-        long deltaTime = timeCurrent - timeOff;
+        long timeAvai = 2700 * 3 + 600 * 1;                  //25x3 + 10x1 = 85 (max queue length barrack level 12)
+        long deltaTime = currentTime - timeOff;
+        if(deltaTime / 1000 > timeAvai) deltaTime = timeAvai;
         
-        //For voi tung barrack queue
-        BarrackQueue barrackQueue;
-        for (Integer id : barrackQueueInfo.barrackQueueMap.keySet()) {
-            barrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
-            
+        int temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
+        if(temp <= troopAvai){
+            //OK
+            //Goi ham thay doi so luong linh voi deltaTime nay
+            //return
         }
+
+        while(temp > troopAvai && deltaTime > 0){
+            deltaTime /= 2;
+            temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
+        }
+        
+        //Voi deltaTime luc nay, temp <= troopAvai
+        
+        int i = 1;
+        while(deltaTime > 0){
+            if(temp <= troopAvai){
+                deltaTime = deltaTime + deltaTime / 2;
+            }else{
+                deltaTime /= 2;
+            }
+            temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
+            i++;
+        }
+        
+        //Luc nay, deltaTime da ok
             
+    }
+    
+    //So unit capacity linh co the train trong khoang tgian deltaTime, k bi rang buoc boi AMCs capacity
+    private int amountTroopCapacityCanBeTrained(BarrackQueueInfo barrackQueueInfo, long _deltaTime) {
+        long deltaTime = _deltaTime;
+        int totalCapacity = 0;
+        
+        BarrackQueue barrackQueue;     
+        for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueInfo.barrackQueueMap.get(idBarrack);
+            if(barrackQueue.startTime == 0){
+                continue;
+            }
+            //troopList
+            if(barrackQueue.amountItemInQueue > 0 && barrackQueue.totalTroopCapacity > 0){
+                long amountTrainedTroop = 0;
+                TroopInBarrack troopInBarrack;
+                int i = 1;
+                while(true){
+                    System.out.println("============================================ Lan while thu: " + i);
+                    try {
+                        troopInBarrack = barrackQueue.getTroopByPosition(0);
+                    } catch (Exception e) {
+                        System.out.println("============================================ Loi o day " + e);
+                        return 0;
+                    }
+                    
+                    amountTrainedTroop = deltaTime / troopInBarrack.trainingTime;
+                    if(amountTrainedTroop >= troopInBarrack.amount){
+                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
+                        barrackQueue.updateQueue(troopInBarrack.currentPosition);
+                        totalCapacity += troopInBarrack.amount * troopInBarrack.housingSpace;
+                         
+                        barrackQueue.amountItemInQueue--;
+                        if(barrackQueue.amountItemInQueue == 0){
+                            break;
+                        }
+                        deltaTime -=  amountTrainedTroop * troopInBarrack.trainingTime;
+                        if(deltaTime == 0){
+                            break;
+                        }    
+                    }else if(amountTrainedTroop >= 1){
+                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
+                        totalCapacity += amountTrainedTroop * troopInBarrack.housingSpace;
+                        break;
+                    }
+                    i++;
+                }
+            } 
+        }
+        return totalCapacity;
     }
     
     private int getElixirCost(String troopType, int level) {
@@ -634,7 +724,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
     }
     
     private int timeToG(int time) {
-        return time/60;
+        return (int) Math.ceil(time/60.0);
     }
         
     private int checkResource(ZPUserInfo user, int elixir, int darkElixir) {
