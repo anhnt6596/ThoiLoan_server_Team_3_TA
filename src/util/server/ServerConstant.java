@@ -42,6 +42,11 @@ public class ServerConstant {
     public static final String elixir_capacity = "capacityElixir"; 
     public static final String darkElixir_capacity = "capacityDarkElixir";
     
+    public static final short guild_leader = 0;
+    public static final short guild_moderator = 1;
+    public static final short guild_member = 2;
+    
+    
     public static final String PREFIX_BARRACK_QUEUE_INFO = "BarrackQueueInfo";
         
     public static JSONObject configInitGame ;
