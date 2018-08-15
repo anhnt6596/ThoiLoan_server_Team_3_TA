@@ -46,11 +46,12 @@ public class ZPUserInfo extends DataModel {
     public int darkElixir = 0; 
     public int builderNumber ;
 
-
+    public boolean is_in_guild = false;
+    public int id_guild = -1;
+    public String name_guild = "";
+    public int id_logo_guild = -1;
+    public int last_time_ask_for_troops = 0;
     
-    public Point position;    
-    
-
     public ZPUserInfo(int _id, String _name) {
         super();
         id = _id;
@@ -162,5 +163,15 @@ public class ZPUserInfo extends DataModel {
             this.darkElixir = dElx_rq;
         }
         this.coin = this.coin + _coin;
+    }
+    
+    public void addGuildInfo(int _id_guild, String _name_guild, int _id_logo_guild){
+        this.is_in_guild = true;
+        this.id_guild = _id_guild;
+        this.name_guild = _name_guild;
+        this.id_logo_guild = _id_logo_guild;
+    }
+    public void leftGuild(){
+        this.is_in_guild = false;
     }
 }

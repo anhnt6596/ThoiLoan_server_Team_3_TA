@@ -30,6 +30,13 @@ public class ResponseRequestUserInfo extends BaseMsg {
         bf.putInt(info.builderNumber);                  
         bf.putLong(System.currentTimeMillis());
         
+        putBoolean(bf, info.is_in_guild);
+        if (info.is_in_guild){
+            bf.putInt(info.id_guild);
+            putStr(bf, info.name_guild);
+            bf.putInt(info.id_logo_guild);
+            bf.putInt(info.last_time_ask_for_troops);
+        }
         return packBuffer(bf);
     }
 }
