@@ -56,7 +56,7 @@ import util.server.ServerConstant;
 
 public class TrainTroopHandle extends BaseClientRequestHandler {
     public static short TRAINTROOP_MULTI_IDS = 7000;
-    private final Logger logger = LoggerFactory.getLogger("TroopHandle");
+    private final Logger logger = LoggerFactory.getLogger("TrainTroopHandle");
     public TrainTroopHandle() {
         super();
     }

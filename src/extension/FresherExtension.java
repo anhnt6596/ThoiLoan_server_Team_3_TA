@@ -39,6 +39,8 @@ import util.metric.LogObject;
 import util.metric.MetricLog;
 
 import service.HarvestHandle;
+import service.InteractiveGuildHandler;
+
 import util.server.ServerConstant;
 import util.server.ServerLoop;
 
@@ -64,6 +66,7 @@ public class FresherExtension extends BZExtension {
         addRequestHandler(TroopHandle.TROOP_MULTI_IDS, TroopHandle.class);
         
         addRequestHandler(TrainTroopHandle.TRAINTROOP_MULTI_IDS, TrainTroopHandle.class);
+        addRequestHandler(InteractiveGuildHandler.INTERACTIVE_MULTI_IDS, InteractiveGuildHandler.class);
 
         trace(" Event Handler ");
         addEventHandler(BZEventType.USER_LOGIN, LoginSuccessHandler.class);
