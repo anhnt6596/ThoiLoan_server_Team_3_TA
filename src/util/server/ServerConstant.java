@@ -38,7 +38,7 @@ public class ServerConstant {
     public static final String darkElixir_resource = "darkElixir"; 
     public static final String coin_resource = "coin"; 
     
-    public static final String gold_capacity = "capacityGold"; 
+    public static final String gold_capacity = "capacityGold";
     public static final String elixir_capacity = "capacityElixir"; 
     public static final String darkElixir_capacity = "capacityDarkElixir";
     
@@ -62,6 +62,7 @@ public class ServerConstant {
     public static JSONObject configDefence;
     public static JSONObject configObstacle;
     public static JSONObject configWall;
+    public static JSONObject configClanCastle;
     public static JSONObject config;
     
     public static final short SUCCESS = 1;
@@ -450,6 +451,36 @@ public class ServerConstant {
             CommonHandle.writeErrLog(e);
         }
     }
+    public static void readConfigClanCastle(){
+        String path = System.getProperty("user.dir")+"/conf/Config_json/";
+        StringBuffer contents = new StringBuffer();
+        
+        try {
+            File file = new File(path+"ClanCastle.json");
+            Reader r = new InputStreamReader(new FileInputStream(file), "UTF-8");
+            BufferedReader reader = new BufferedReader(r);
+            String text = null;
+            
+            while ((text = reader.readLine()) != null){
+                contents.append(text).append(System.getProperty("line.separator"));
+            }
+        } catch (Exception e) {
+            CommonHandle.writeErrLog(e);
+        }
+        
+        try {
+            ServerConstant.configClanCastle = new JSONObject(contents.toString());
+            
+            Writer w = new OutputStreamWriter(new FileOutputStream(path+"configClanCastle.txt"),"UTF-8");
+            BufferedWriter fout = new BufferedWriter(w);
+            fout.write(ServerConstant.configClanCastle.toString());
+            fout.close();
+            
+        } catch (Exception e){
+            CommonHandle.writeErrLog(e);
+        }
+    }
+    
     public static void readConfig(){
         readConfigArmyCamp();
         readConfigBarrack();
@@ -463,6 +494,7 @@ public class ServerConstant {
         readConfigDefence();
         readConfigObstacle();
         readConfigWall();
+        readConfigClanCastle();
         
         
         String path = System.getProperty("user.dir")+"/conf/Config_json/";
@@ -503,6 +535,7 @@ public class ServerConstant {
             ServerConstant.config.put("DEF_13", configDefence.getJSONObject("DEF_13"));
             
             ServerConstant.config.put("WAL_1", configDefence.getJSONObject("WAL_1"));
+            ServerConstant.config.put("CLC_1", configDefence.getJSONObject("CLC_1"));
             
             Iterator<?> keys = ServerConstant.configObstacle.keys();
             while (keys.hasNext()){

@@ -1,32 +1,10 @@
 package model;
 
-import bitzero.util.common.business.CommonHandle;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-
-import java.io.UnsupportedEncodingException;
-
-import java.io.Writer;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
-
 import java.util.Map;
 import java.util.Queue;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import util.database.DataModel;
 
@@ -48,9 +26,10 @@ public class Guild extends DataModel {
     
     
 
-    public Guild(int id_user, String _name, int _id, int _logo_id) {
+    public Guild(int id_user, String _name, int _logo_id) {
         super();
-        this.id = _id;
+        this.id = id_user;
+        this.name = _name;
         this.level = 1;
         this.exp = 0;
         this.uranium = 0;
@@ -58,25 +37,30 @@ public class Guild extends DataModel {
         this.logo_id = _logo_id;
         addMember(id_user, ServerConstant.guild_leader);
         
-        
     }
     
     public String toString() {
         return String.format("%s|%s", new Object[] { id, name });
     }
-
-    private void addMember(int _id_user, short _position) {
+    //bang hoi them nguoi
+    public void addMember(int _id_user, short _position) {
+        this.list_require.remove(_id_user);
         this.list_member.put(_id_user, _position);
-        ZPUserInfo user;
-        try {
-            user = (ZPUserInfo) ZPUserInfo.getModel(_id_user, ZPUserInfo.class);
-            if (user == null) {
-                //send response error
-            }
-        } catch (Exception e) {
-            
-        }
-        
-        
+    }
+    //bang hoi loai bo member
+    public void removeMember(int _id_user){
+        this.list_member.remove(_id_user);
+    }
+    public void addRequestMember(int _id_user, String _name){
+        this.list_require.put(_id_user, _name);
+    }
+    public void removeRequestMember(int _id_user){
+        this.list_require.remove(_id_user);
+    }
+    public boolean checkListRequire(int id){
+        return true;
+    }
+    public boolean checkListmember(int id){
+        return true;
     }
 }

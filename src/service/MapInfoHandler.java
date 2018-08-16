@@ -202,7 +202,13 @@ MapInfoHandler extends BaseClientRequestHandler {
                 //send response error
             }
             logger_move.debug("Map Info truoc khi move");
-            mapInfo.print();
+            //mapInfo.print();
+            Building building = mapInfo.listBuilding.get(move_construction.id);
+            if (building.type.equals("CLC_1") && building.level==0){
+                    logger.debug("Nha Bang hoi chua duoc xay dung, khong the di chuyen!");
+                    send(new ResponseRequestMoveConstruction(ServerConstant.ERROR), user);
+                    return;
+                }
             MapArray mapArray = new MapArray();
             mapArray = mapInfo.getMapArray();
             //System.out.println("VI TRI CU="+mapInfo.listBuilding.get(move_construction.id).posX+" "+mapInfo.listBuilding.get(move_construction.id).posY);
@@ -240,8 +246,6 @@ MapInfoHandler extends BaseClientRequestHandler {
                //send response error
                send(new ResponseRequestAddConstruction(ServerConstant.ERROR), user);
             }
-            
-            
             
             MapArray mapArray = new MapArray();
             mapArray = mapInfo.getMapArray();
@@ -411,7 +415,8 @@ MapInfoHandler extends BaseClientRequestHandler {
                     if (userInfo.coin < coin+exchange_resource+g_release ){ //neu khong du tien mua tho xay
                         //linhrafa --Neu false
                         //tra ve false
-                        send(new ResponseRequestAddConstruction(ServerConstant.ERROR), user);
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                        return;
                     }
                     else {
                         //giai phong 1 ngoi nha pending
@@ -426,8 +431,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                         userInfo.saveModel(user.getId());
                         mapInfo.saveModel(user.getId());
                         logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
-                        mapInfo.print()
-                            ;
+                        //mapInfo.print();
                         send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
                     }
                 } 
@@ -441,9 +445,115 @@ MapInfoHandler extends BaseClientRequestHandler {
                     mapInfo.print();
                     send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
                 }
+            }
+        else {
+            //linhrafa --Neu false
+            //tra ve false
+            send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+            return;
+        }
             
+        //Dat lai startTime cho Barrack
+        if(building.type.equals("BAR_1")){
+            System.out.println("==============================START UPGRADE BAR_1===========================");
+            this.changeBarrackQueueInfoWhenBarrackStartUpgrade(user, building.id);
+        }
+            
+            
+        } catch (Exception e) {
+        }
+    
+        
+    }
+    private void processUpgradeConstruction(User user, int id) {
+        MapInfo mapInfo;
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            //*------------------------------------------------
+            mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {               
+               //send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            Building building = mapInfo.listBuilding.get(id);
+            if (building.type.equals("BDH_1") || building.status.equals(ServerConstant.destroy_status)){
+                    send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                    return;
+                }
+            //*------------------------------------------------
+    //            logger.info(">>>>>>>>>>>>>in ra truoc khi upgrade>>>>>>>");
+    //            mapInfo.print();
+        //neu la nha Resource thi thu hoac truoc
+            if (building.type.equals("RES_1") || building.type.equals("RES_2") || building.type.equals("RES_3")){
+                doHarvest(user,building.id);
+            }
+            
+        int exchange_resource = 0;
+        exchange_resource = checkResource(userInfo,(building.type),building.level+1);
+            
+        System.out.println("check_resource chuyen doi to upgrade building= " + exchange_resource );
+        int coin = getCoin(building.type,building.level+1);
+
+        if ((exchange_resource+coin<userInfo.coin)){ 
+                //add building to pending
+                int gold = getGold(building.type,building.level+1);
+                int elixir = getElixir(building.type,building.level+1);
+                int darkElixir = getDarkElixir(building.type,building.level+1);
                 
+                mapInfo.print();
                 
+                System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
+                
+                // kiem tra tho xay
+                //                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
+                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
+                    
+                    System.out.println("CAN GIAI PHONG THO XAY");
+                    
+                    //get resource cua nha
+                    
+                    int g_release = mapInfo.getGToReleaseBuilder();
+                    System.out.println("So G de giai phong la "+ g_release);
+    //                    check_resource = check_resource +g;
+                    if (userInfo.coin < coin+exchange_resource+g_release ){ //neu khong du tien mua tho xay
+                        //linhrafa --Neu false
+                        //tra ve false
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                        return;
+                    }
+                    else {
+                        //giai phong 1 ngoi nha pending
+                        
+                        mapInfo.releaseBuilding(user); 
+                        
+                        mapInfo.print();
+                        
+                        userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin+g_release, building.type, false);
+                        mapInfo.upgradeBuilding(id);
+                        
+                        userInfo.saveModel(user.getId());
+                        mapInfo.saveModel(user.getId());
+                        logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                        //mapInfo.print();
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
+                    }
+                } 
+                else { //neu da du tho xay
+                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);                    
+                    mapInfo.upgradeBuilding(id);
+                    
+                    userInfo.saveModel(user.getId());
+                    mapInfo.saveModel(user.getId());
+                    logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                    mapInfo.print();
+                    send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
+                }
             }
         else {
             //linhrafa --Neu false
