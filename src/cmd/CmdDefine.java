@@ -59,6 +59,19 @@ public class CmdDefine {
     public static final short GET_TROOP_INFO = 4001;
     public static final short RESEARCH_TROOP = 4002;
     public static final short RESEARCH_TROOP_COMPLETE = 4003;
+        
+    public static final short CREATE_GUILD = 5001;
+    public static final short ADD_MEMBER = 5002;
+    public static final short REMOVE_MEMBER = 5003;
+    public static final short ADD_REQUEST_MEMBER = 5004;    
+    public static final short DENY_REQUEST_MEMBER = 5005;
+    
+    public static final short GET_GUILD_INFO = 5007;
+    public static final short EDIT_GUILD_INFO = 5008;
+    
+
+
+    
     
     public static final short GET_BARRACK_QUEUE_INFO = 7001;
     public static final short TRAIN_TROOP = 7002;

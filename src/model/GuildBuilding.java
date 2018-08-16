@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import util.database.DataModel;
 
 import util.server.ServerConstant;
@@ -21,39 +24,42 @@ public class GuildBuilding extends DataModel {
     }
     
     //Ai cho, cho troop nao, chi cho 1 unit
-    private void addTroopGuild(int userId, TroopGuild troop) {
+    private void addTroopGuild(ZPUserInfo user, TroopGuild troop) {
         //Check capacity cua guildBuilding - phu thuoc vao level cua GuiBuilding
-        int amount = userGaveMap.get(userId);
+        int amount = userGaveMap.get(user.id);
         if ((Integer) amount != null) {
             if(amount >= ServerConstant.MAX_TROOP_AMOUNT_USER_CAN_GIVE){
                 //Response ERROR
                 return;
             }
             int newAmount = amount++;
-            userGaveMap.put(userId, newAmount);
+            userGaveMap.put(user.id, newAmount);
         } else {
-            userGaveMap.put(userId, 1);
+            userGaveMap.put(user.id, 1);
         }
         troopGuildList.add(troop);
         
-        int capacityGuild;
+        int levelGuild = getLevelGuildBuilding(user);
+        
+    
+        
 //        if(troopGuildList.size() >= ServerConstant)
 
         //Response SUCCESS Give Troop
         //Response to all User
     }
     
-    private int getLevelGuildBuilding(User user, int idGuildBuilding) {
+    public int getLevelGuildBuilding(ZPUserInfo user) {
         MapInfo mapInfo;
         try {
-            mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            mapInfo = (MapInfo) MapInfo.getModel(user.id, MapInfo.class);
         } catch (Exception e) {
             return 0;
         }
         if (mapInfo == null) {         
            return 0;
         }
-        int level = mapInfo.listBuilding.get(idGuildBuilding).level;
+        int level = mapInfo.listBuilding.get(ServerConstant.ID_CLC_BUILDING).level;
         return level;
     }
 }

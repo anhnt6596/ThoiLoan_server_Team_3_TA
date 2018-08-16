@@ -174,4 +174,7 @@ public class ZPUserInfo extends DataModel {
     public void leftGuild(){
         this.is_in_guild = false;
     }
+
+    public void getId() {
+    }
 }

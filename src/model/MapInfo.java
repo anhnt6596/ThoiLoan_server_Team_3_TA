@@ -104,8 +104,8 @@ public class MapInfo extends DataModel{
 //                System.out.println("typehouse "+ key);    
 //                System.out.println("posX "+ house_type.getInt("posX")); 
 //                System.out.println("posy "+ house_type.getInt("posY")); 
-                if (key.equals("TOW_1")){
-                    addBuilding(key,house_type.getInt("posX")-1, house_type.getInt("posY")-1,1,"complete");
+                if (key.equals("CLC_1")){
+                    addBuilding(key,house_type.getInt("posX")-1, house_type.getInt("posY")-1,0,"complete");
                 }else{
                     addBuilding(key,house_type.getInt("posX")-1, house_type.getInt("posY")-1,1,"complete");
                 }

@@ -8,6 +8,7 @@ import bitzero.server.extensions.data.DataCmd;
 
 import cmd.CmdDefine;
 
+import cmd.receive.guild.RequestGiveTroop;
 import cmd.receive.guild.RequestSendNewMessage;
 import cmd.receive.train.RequestCancelTrainTroop;
 import cmd.receive.train.RequestFinishTimeTrainTroop;
@@ -15,19 +16,27 @@ import cmd.receive.train.RequestTrainTroop;
 import cmd.receive.troop.RequestQuickFinishTrainTroop;
 
 import cmd.send.demo.ResponseRequestQuickFinish;
+import cmd.send.guild.ResponseGiveTroop;
 import cmd.send.guild.ResponseSendNewMessage;
 import cmd.send.train.ResponseRequestBarrackQueueInfo;
 
 import model.Guild;
+import model.GuildBuilding;
 import model.MessageGuild;
+import model.TroopGuild;
 import model.ZPUserInfo;
 
 import model.train.BarrackQueueInfo;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import util.database.DataModel;
 
 import util.server.ServerConstant;
 
@@ -51,7 +60,8 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                     processRequestNewMessage(user, messagePacket);
                     break;
                 case CmdDefine.GIVE_TROOP_GUILD:
-                    
+                    RequestGiveTroop packet = new RequestGiveTroop(dataCmd);
+                    processRequestGiveTroop(user, packet);
                     break;
             }
         } catch (Exception e) {
@@ -86,6 +96,41 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                 otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
                 send(new ResponseSendNewMessage(ServerConstant.TO_ALL, (short) 0, message), otherUser);
             }
+            
+            guild.saveModel(idGuild);
+            
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+    
+    private void processRequestGiveTroop(User user, RequestGiveTroop packet) {
+        try {
+            //user nhan troop
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(packet.idUserGet, ZPUserInfo.class);
+            if (userInfo == null) {
+               //send response error
+               send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, (short) 0), user);
+               return;
+            }
+            
+            int idGuild = userInfo.id_guild;
+            Guild guild = (Guild) Guild.getModel(idGuild, Guild.class);
+            
+            TroopGuild troopGuild = new TroopGuild(packet.troopType, packet.level);
+            
+            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+            
+            int levelGuildBuilding = guildBuilding.getLevelGuildBuilding(userInfo);
+            
+            JSONObject guildConfig = ServerConstant.configClanCastle.getJSONObject("CLC_1");
+            int troopCapacity;
+            try {
+                troopCapacity = guildConfig.getJSONObject(Integer.toString(levelGuildBuilding)).getInt("troopCapacity");
+            } catch (JSONException e) {
+                return;
+            }
+            
             
             guild.saveModel(idGuild);
             
