@@ -66,8 +66,6 @@ public class ServerConstant {
         
     public static final short SUCCESS = 1;
     public static final short ERROR = 0;
-    public static final short VALIDATE = 0;
-    public static final short TO_ALL = 1;
     
     public static final short SEARCH_ID = 0;
     public static final short SEARCH_NAME = 1;

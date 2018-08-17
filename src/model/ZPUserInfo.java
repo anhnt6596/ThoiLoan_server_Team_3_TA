@@ -108,7 +108,111 @@ public class ZPUserInfo extends DataModel {
             CommonHandle.writeErrLog(e);
         }
     }
-    
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId1() {
+        return id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setExp(long exp) {
+        this.exp = exp;
+    }
+
+    public long getExp() {
+        return exp;
+    }
+
+    public void setGold(int gold) {
+        this.gold = gold;
+    }
+
+    public int getGold() {
+        return gold;
+    }
+
+    public void setCoin(int coin) {
+        this.coin = coin;
+    }
+
+    public int getCoin() {
+        return coin;
+    }
+
+    public void setElixir(int elixir) {
+        this.elixir = elixir;
+    }
+
+    public int getElixir() {
+        return elixir;
+    }
+
+    public void setDarkElixir(int darkElixir) {
+        this.darkElixir = darkElixir;
+    }
+
+    public int getDarkElixir() {
+        return darkElixir;
+    }
+
+    public void setBuilderNumber(int builderNumber) {
+        this.builderNumber = builderNumber;
+    }
+
+    public int getBuilderNumber() {
+        return builderNumber;
+    }
+
+    public void setIs_in_guild(boolean is_in_guild) {
+        this.is_in_guild = is_in_guild;
+    }
+
+    public boolean isIs_in_guild() {
+        return is_in_guild;
+    }
+
+    public void setId_guild(int id_guild) {
+        this.id_guild = id_guild;
+    }
+
+    public int getId_guild() {
+        return id_guild;
+    }
+
+    public void setName_guild(String name_guild) {
+        this.name_guild = name_guild;
+    }
+
+    public String getName_guild() {
+        return name_guild;
+    }
+
+    public void setId_logo_guild(int id_logo_guild) {
+        this.id_logo_guild = id_logo_guild;
+    }
+
+    public int getId_logo_guild() {
+        return id_logo_guild;
+    }
+
+    public void setLast_time_ask_for_troops(int last_time_ask_for_troops) {
+        this.last_time_ask_for_troops = last_time_ask_for_troops;
+    }
+
+    public int getLast_time_ask_for_troops() {
+        return last_time_ask_for_troops;
+    }
+
     public void reduceUserResources(int gold, int elixir, int darkElixir, int coin, String type, boolean isAdd ){
         //tru gold
         if (this.gold < gold){

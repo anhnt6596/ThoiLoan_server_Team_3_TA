@@ -218,13 +218,6 @@ public class Guild extends DataModel implements Comparable<Guild> {
         return logo_id;
     }
 
-    public void setList_message(Queue<MessageGuild> list_message) {
-        this.list_message = list_message;
-    }
-
-    public Queue<MessageGuild> getList_message() {
-        return list_message;
-    }
 
     public void setList_require(Map<Integer, String> list_require) {
         this.list_require = list_require;
