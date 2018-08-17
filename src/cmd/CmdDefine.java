@@ -78,6 +78,12 @@ public class CmdDefine {
     public static final short CANCEL_TRAIN_TROOP = 7003;
     public static final short QUICK_FINISH_TRAIN_TROOP = 7004;
     public static final short FINISH_TIME_TRAIN_TROOP = 7005;
+    
+    public static final short NEW_MESSAGE = 8001;
+    public static final short GIVE_TROOP_GUILD = 8002;
+
+
+    
 
     public static final short RESEARCH_TROOP_QUICK_FINISH = 4004;
 }

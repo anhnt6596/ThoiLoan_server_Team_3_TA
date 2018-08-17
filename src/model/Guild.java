@@ -7,8 +7,9 @@ import bitzero.util.ExtensionUtility;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+
 
 import util.database.DataModel;
 
@@ -46,11 +47,10 @@ public class Guild extends DataModel implements Comparable<Guild> {
     }
     public int level;
     public int logo_id;
-    public Queue<MessageGuild> list_message = new LinkedList<MessageGuild>();
+    public List<MessageGuild> list_message = new LinkedList<MessageGuild>();
     public Map <Integer, String> list_require = new HashMap<Integer, String>();
     public Map <Integer, Short> list_member = new HashMap<Integer, Short>();
 
-    
     
 
     public Guild(int id_user, String _name, int _logo_id, short _status, int _danh_vong_require, String _description) {
@@ -76,7 +76,59 @@ public class Guild extends DataModel implements Comparable<Guild> {
     public void addMember(int _id_user, short _position) {
         this.list_require.remove(_id_user);
         this.list_member.put(_id_user, _position);
+        ZPUserInfo user;
+        try {
+            user = (ZPUserInfo) ZPUserInfo.getModel(_id_user, ZPUserInfo.class);
+            if (user == null) {
+                //send response error
+            }
+        } catch (Exception e) {
+            
+        }
     }
+    
+    public void addMessage(MessageGuild message){
+        //Neu la type ask troop thi xoa tin nhan ask troop trc do neu co
+        if(message.type == ServerConstant.ASK_TROOP){
+            removeOldMessageWhenGetNewMessageRequestTroop(message.id_user);
+            updateLastAskTroopTimeStamp(message.id_user);
+        }
+        
+        if(list_message.size() >= ServerConstant.MAX_MESSAGES_QUEUE){
+            list_message.remove(0);
+        }
+        
+        list_message.add(message);
+    }
+    
+    //Xoa message xin quan cu neu co request xin quan moi
+    private void removeOldMessageWhenGetNewMessageRequestTroop(int userId) {
+        MessageGuild mess;
+        Iterator<MessageGuild> i = list_message.iterator();
+        while (i.hasNext()) {
+            mess = i.next();
+            if(mess.type == ServerConstant.ASK_TROOP && mess.id_user == userId){
+                int index = list_message.indexOf(mess);
+                list_message.remove(index);
+                break;
+            }
+        }         
+    }
+    
+    private void updateLastAskTroopTimeStamp(int userId) {
+        GuildBuilding guildBuilding;
+        try {
+            guildBuilding = (GuildBuilding) GuildBuilding.getModel(userId, GuildBuilding.class);
+        } catch (Exception e) {
+            return;
+        }
+        guildBuilding.lastRequestTroopTimeStamp = System.currentTimeMillis();
+        try {
+            guildBuilding.saveModel(userId);
+        } catch (Exception e) {
+        }
+    }
+    
     //bang hoi loai bo member
     public void removeMember(int _id_user){
         this.list_member.remove(_id_user);

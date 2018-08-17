@@ -45,9 +45,6 @@ public class ServerConstant {
     public static final short guild_leader = 0;
     public static final short guild_moderator = 1;
     public static final short guild_member = 2;
-    
-    
-    public static final String PREFIX_BARRACK_QUEUE_INFO = "BarrackQueueInfo";
         
     public static JSONObject configInitGame ;
     public static JSONObject configArmyCamp ;
@@ -74,6 +71,21 @@ public class ServerConstant {
     
     public static final short SEARCH_ID = 0;
     public static final short SEARCH_NAME = 1;
+    
+    public static final short NEW_MESSAGE_OTHER_PLAYER = 2;
+    public static final int MAX_MESSAGES_QUEUE = 100;
+    public static final int MAX_TROOP_AMOUNT_USER_CAN_GIVE = 5;
+    public static final int TIME_REQUEST_TROOP = 1200;              //second
+    public static final int ID_CLC_BUILDING = 4;              //second
+    
+    
+    //Type messageGuild
+    public static final short NORMAL = 1;    
+    public static final short ASK_TROOP = 2;
+    
+    //Type response Message
+    public static final short VALIDATE = 1;
+    public static final short TO_ALL = 2;
     
     public static final String PLAYER_INFO = "player_info";
     public static final String PLAYER_TRANSIENT = "player_transient";
