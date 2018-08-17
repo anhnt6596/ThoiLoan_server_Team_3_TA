@@ -3,6 +3,7 @@ package model;
 import bitzero.server.entities.User;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -23,33 +24,7 @@ public class GuildBuilding extends DataModel {
         super();
     }
     
-    //Ai cho, cho troop nao, chi cho 1 unit
-    private void addTroopGuild(ZPUserInfo user, TroopGuild troop) {
-        //Check capacity cua guildBuilding - phu thuoc vao level cua GuiBuilding
-        int amount = userGaveMap.get(user.id);
-        if ((Integer) amount != null) {
-            if(amount >= ServerConstant.MAX_TROOP_AMOUNT_USER_CAN_GIVE){
-                //Response ERROR
-                return;
-            }
-            int newAmount = amount++;
-            userGaveMap.put(user.id, newAmount);
-        } else {
-            userGaveMap.put(user.id, 1);
-        }
-        troopGuildList.add(troop);
-        
-        int levelGuild = getLevelGuildBuilding(user);
-        
-    
-        
-//        if(troopGuildList.size() >= ServerConstant)
-
-        //Response SUCCESS Give Troop
-        //Response to all User
-    }
-    
-    public int getLevelGuildBuilding(ZPUserInfo user) {
+    public int getGuildCapacity(ZPUserInfo user) {
         MapInfo mapInfo;
         try {
             mapInfo = (MapInfo) MapInfo.getModel(user.id, MapInfo.class);
@@ -60,6 +35,43 @@ public class GuildBuilding extends DataModel {
            return 0;
         }
         int level = mapInfo.listBuilding.get(ServerConstant.ID_CLC_BUILDING).level;
-        return level;
+        
+        JSONObject guildConfig;
+        try {
+            guildConfig = ServerConstant.configClanCastle.getJSONObject("CLC_1");
+        } catch (JSONException e) {
+            return 0;
+        }
+        int guildCapacity;
+        try {
+            guildCapacity = guildConfig.getJSONObject(Integer.toString(level)).getInt("troopCapacity");
+        } catch (JSONException e) {
+            return 0;
+        }
+        
+        return guildCapacity;
+    }
+    
+    public int getCurrentTroopCapacityGuild() {
+        int total = 0;
+        
+        JSONObject troopConfig = ServerConstant.configTroopBase;
+        int space;
+        
+        Iterator<TroopGuild> i = troopGuildList.iterator();
+        while (i.hasNext()) {
+            TroopGuild troop = i.next();
+            try {
+                space = troopConfig.getJSONObject(troop.name).getInt("housingSpace");
+                total += space;
+            } catch (JSONException e) {
+                return 0;
+            }
+        }
+        return total;
+    }
+    
+    public void resetUserGaveMap() {
+        userGaveMap.clear();
     }
 }

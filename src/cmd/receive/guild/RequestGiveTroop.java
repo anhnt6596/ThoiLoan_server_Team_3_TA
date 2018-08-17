@@ -8,9 +8,9 @@ import bitzero.util.common.business.CommonHandle;
 import java.nio.ByteBuffer;
 
 public class RequestGiveTroop extends BaseCmd{
-    private int idUserGet;
-    private String troopType;
-    private short level;
+    public int idUserGet;
+    public String troopType;
+    public short level;
     
     public RequestGiveTroop(DataCmd dataCmd) {
         super(dataCmd);

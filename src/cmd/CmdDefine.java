@@ -81,6 +81,7 @@ public class CmdDefine {
     
     public static final short NEW_MESSAGE = 8001;
     public static final short GIVE_TROOP_GUILD = 8002;
+    public static final short GET_INTERACTION_GUILD = 8003;
 
 
     

@@ -65,7 +65,6 @@ public class ServerConstant {
     public static final short SUCCESS = 1;
     public static final short ERROR = 0;
     
-    public static final short NEW_MESSAGE_OTHER_PLAYER = 2;
     public static final int MAX_MESSAGES_QUEUE = 100;
     public static final int MAX_TROOP_AMOUNT_USER_CAN_GIVE = 5;
     public static final int TIME_REQUEST_TROOP = 1200;              //second

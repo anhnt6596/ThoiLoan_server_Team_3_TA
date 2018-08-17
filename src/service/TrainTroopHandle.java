@@ -14,7 +14,7 @@ import cmd.receive.train.RequestCancelTrainTroop;
 import cmd.receive.train.RequestFinishTimeTrainTroop;
 import cmd.receive.train.RequestTrainTroop;
 import cmd.send.train.ResponseRequestQuickFinishTrainTroop;
-import cmd.receive.troop.RequestQuickFinishTrainTroop;
+import cmd.receive.train.RequestQuickFinishTrainTroop;
 
 import cmd.send.demo.ResponseRequestQuickFinish;
 

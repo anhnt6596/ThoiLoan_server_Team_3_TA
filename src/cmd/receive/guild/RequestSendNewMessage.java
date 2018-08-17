@@ -7,7 +7,7 @@ import bitzero.util.common.business.CommonHandle;
 
 import java.nio.ByteBuffer;
 
-public class RequestSendNewMessage extends BaseCmd{
+public class RequestSendNewMessage extends BaseCmd {
     public short type;             //normal or askTroop
     public String content;
     
