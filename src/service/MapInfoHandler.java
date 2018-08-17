@@ -268,7 +268,7 @@ MapInfoHandler extends BaseClientRequestHandler {
             int coin = getCoin(add_construction.type,level); //coin de thuc hien thao tac voi nha
             
             System.out.println("check_resource+coin= " + (check_resource+coin) );
-            System.out.println("userInfo.coin= " + userInfo.coin );
+            System.out.println("userInfo.coin = " + userInfo.coin );
             
             if (checkPosition && (check_resource+coin<userInfo.coin)){ 
                 //add building to pending

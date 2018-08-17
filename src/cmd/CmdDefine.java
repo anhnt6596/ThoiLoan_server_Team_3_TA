@@ -65,7 +65,7 @@ public class CmdDefine {
     public static final short REMOVE_MEMBER = 5003;
     public static final short ADD_REQUEST_MEMBER = 5004;    
     public static final short DENY_REQUEST_MEMBER = 5005;
-    
+    public static final short SEARCH_GUILD_INFO = 5006;    
     public static final short GET_GUILD_INFO = 5007;
     public static final short EDIT_GUILD_INFO = 5008;
     

@@ -62,8 +62,15 @@ public class ServerConstant {
     public static JSONObject configClanCastle;
     public static JSONObject config;
     
+    public static final int CREATE_GUILD_COST = 40000;
+        
     public static final short SUCCESS = 1;
     public static final short ERROR = 0;
+    public static final short VALIDATE = 0;
+    public static final short TO_ALL = 1;
+    
+    public static final short SEARCH_ID = 0;
+    public static final short SEARCH_NAME = 1;
     
     public static final int MAX_MESSAGES_QUEUE = 100;
     public static final int MAX_TROOP_AMOUNT_USER_CAN_GIVE = 5;
@@ -105,6 +112,7 @@ public class ServerConstant {
     
     public static final int CUSTOM_LOGIN = ConfigHandle.instance().getLong("custom_login").intValue();
     
+
     public static void readConfigArmyCamp(){
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>aaaaaaaaaaaaaaaaaaaaaaa");
         String path = System.getProperty("user.dir")+"/conf/Config_json/";

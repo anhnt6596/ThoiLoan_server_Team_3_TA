@@ -85,7 +85,7 @@ public class UserHandler extends BaseClientRequestHandler {
             if (userInfo == null) {
                 System.out.println("userInfo_null @#%&*^$&*&$@^$#$&^@#$&@$%@#%^@#^");
                 userInfo = new ZPUserInfo(user.getId(), user.getName());
-                userInfo.saveModel(user.getId());
+                userInfo.saveModel(user.getId());                
             }
             
 //            System.out.println(">>>>>USER CONFIG:");
