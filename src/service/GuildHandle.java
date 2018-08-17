@@ -17,7 +17,11 @@ import cmd.receive.guild.RequestAddRequestMember;
 import cmd.receive.guild.RequestCreateGuild;
 
 import cmd.receive.guild.RequestDenyRequestMember;
+import cmd.receive.guild.RequestEditGuildInfo;
+import cmd.receive.guild.RequestGetGuildInfo;
 import cmd.receive.guild.RequestRemoveMember;
+
+import cmd.receive.guild.RequestSearchGuild;
 
 import cmd.send.guild.ResponseCreateGuild;
 import cmd.send.demo.ResponseRequestAddConstruction;
@@ -28,11 +32,18 @@ import cmd.send.guild.ResponseAddMember;
 
 import cmd.send.guild.ResponseAddRequestMember;
 import cmd.send.guild.ResponseDenyRequestMember;
+import cmd.send.guild.ResponseEditGuildInfo;
+import cmd.send.guild.ResponseGetGuildInfo;
 import cmd.send.guild.ResponseRemoveMember;
+
+import cmd.send.guild.ResponseSearchGuild;
 
 import java.util.List;
 
 import java.util.Map;
+
+import java.util.PriorityQueue;
+import java.util.Queue;
 
 import model.Building;
 import model.Guild;
@@ -53,7 +64,7 @@ import util.server.ServerConstant;
 public class GuildHandle extends BaseClientRequestHandler {
     
     public static short GUILD_MULTI_IDS = 5000;
-    private final Logger logger = LoggerFactory.getLogger("GuildHandle");    
+    private final Logger logger = LoggerFactory.getLogger("GuildHandle");        
     
     public GuildHandle() {
         super();
@@ -92,16 +103,21 @@ public class GuildHandle extends BaseClientRequestHandler {
                         RequestDenyRequestMember member_deny_rq = new RequestDenyRequestMember(dataCmd);
                         processDenyRequestMember(user, member_deny_rq);
                         break;
-//               case CmdDefine.GET_GUILD_INFO:
-//                        //System.out.println("GET_SERVER_TIME");
-//                        RequestCreateGuild create_guild = new RequestCreateGuild(dataCmd);
-//                        processCreateGuild(user, create_guild);
-//                        break;
-//                case CmdDefine.EDIT_GUILD_INFO:
-//                        //System.out.println("GET_SERVER_TIME");
-//                        RequestCreateGuild create_guild = new RequestCreateGuild(dataCmd);
-//                        processCreateGuild(user, create_guild);
-//                        break;
+               case CmdDefine.SEARCH_GUILD_INFO:
+                        //System.out.println("GET_SERVER_TIME");
+                        RequestSearchGuild search_guild = new RequestSearchGuild(dataCmd);
+                        processSearchGuild(user, search_guild);
+                        break;
+                case CmdDefine.GET_GUILD_INFO:
+                        //System.out.println("GET_SERVER_TIME");
+                        RequestGetGuildInfo get_guild_info = new RequestGetGuildInfo(dataCmd);
+                        processGetGuildInfo(user, get_guild_info);
+                        break;
+                case CmdDefine.EDIT_GUILD_INFO:
+                        //System.out.println("GET_SERVER_TIME");
+                        RequestEditGuildInfo edit_guild_info = new RequestEditGuildInfo(dataCmd);
+                        processEditGuildInfo(user, edit_guild_info);
+                        break;
                 
             }
         } catch (Exception e) {
@@ -126,25 +142,34 @@ public class GuildHandle extends BaseClientRequestHandler {
         logger.info("*************************processCreateGuild***************");
         
         try {
-            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
-            if (memberInfo == null) {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
                ////send response error
-                logger.debug("khong ton tai user xin gia nhap");
+                logger.debug("khong ton tai user tao bang");
                send(new ResponseCreateGuild(ServerConstant.ERROR), user);
                return;
             }
+            int g_chuyendoi = checkResourceExchange(userInfo,ServerConstant.CREATE_GUILD_COST);
+            if (g_chuyendoi>userInfo.getCoin()){
+                logger.info("User khong du tien tao bang");
+                send(new ResponseCreateGuild(ServerConstant.ERROR), user);
+                return;
+            }
+            userInfo.reduceUserResources(ServerConstant.CREATE_GUILD_COST,0,0,0,"",false);
+            logger.info("Tao bang moi voi ten = "+ create_guild.name+" logo_id= "+ create_guild.logo_id);
             ListGuild listGuild = (ListGuild) ListGuild.getModel(1, ListGuild.class);
-            if (listGuild ==null){
+            if (listGuild ==null){ //neu listGuild chua duoc khoi tao
                 listGuild = new ListGuild();
+                listGuild.addGuild(create_guild.name);
                 listGuild.saveModel(1);
             }
             
-            Guild guild = guild = new Guild(user.getId(),create_guild.name, create_guild.logo_id);
+            Guild guild = guild = new Guild(listGuild.numberOfGuild,create_guild.name, create_guild.logo_id, create_guild.status, create_guild.require_danh_vong, create_guild.description);
             
-            memberInfo.addGuildInfo(guild.id, guild.name, guild.logo_id);
+            userInfo.addGuildInfo(guild.id, guild.name, guild.logo_id);
             
-            memberInfo.saveModel(user.getId());
-            guild.saveModel(user.getId());
+            userInfo.saveModel(user.getId());
+            guild.saveModel(guild.id);
             send(new ResponseCreateGuild(ServerConstant.SUCCESS), user);
             
         } catch (Exception e) {
@@ -153,33 +178,50 @@ public class GuildHandle extends BaseClientRequestHandler {
     }
   
 
-    private void processAddMember(User user, RequestAddMember member) {
+    private void processAddMember(User user, RequestAddMember new_member) {
         logger.info("*************************processAddMember***************");        
         try {
-            User new_member = ExtensionUtility.globalUserManager.getUserById(member.id);
+            //User new_member = ExtensionUtility.globalUserManager.getUserById(member.id);
 //            User user = BitZeroServer.getInstance().getUserManager().getUserById(id);
-            
-            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(member.id, ZPUserInfo.class);
+            ZPUserInfo leader = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (leader == null) {
+               ////send response error
+                logger.debug("khong ton tai user bang chu");
+               send(new ResponseAddMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
+               return;
+            }
+            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(new_member.id, ZPUserInfo.class);
             if (memberInfo == null) {
                ////send response error
                 logger.debug("khong ton tai user xin gia nhap");
-               send(new ResponseAddMember(ServerConstant.ERROR), user);
+                send(new ResponseAddMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                return;
             }
             
-            Guild guild = (Guild) Guild.getModel(user.getId(), Guild.class);
+            Guild guild = (Guild) Guild.getModel(leader.id_guild, Guild.class);
             if (guild == null) {
                 logger.debug("Khong ton tai guild, id guild = "+ user.getId());
-                send(new ResponseAddMember(ServerConstant.ERROR), user); 
+                send(new ResponseAddMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                 return;
             }
-            guild.addMember(member.id, ServerConstant.guild_member);
-            memberInfo.addGuildInfo(guild.id, guild.name, guild.logo_id);
+            //Upadte thong tin thanh vien trong guild
+            guild.addMember(new_member.id, ServerConstant.guild_member); 
             
-            memberInfo.saveModel(member.id);
+            //update thong tin guild trong member info
+            memberInfo.addGuildInfo(guild.id, guild.name, guild.logo_id); 
+            
+            //gui goi tin them thanh vien toi moi nguoi trong bang
+            ResponseAddRequestMember rs_addRequest = new  ResponseAddRequestMember(ServerConstant.TO_ALL, memberInfo, (short) 0);            
+            for(Map.Entry<Integer, Short> member : guild.list_member.entrySet()) {
+                Integer id_member = member.getKey();
+                //User Member = BitZeroServer.getInstance().getUserManager().getUserById(id_member);
+                User Member = ExtensionUtility.globalUserManager.getUserById(id_member);
+                send (rs_addRequest, Member);
+            }
+            
+            memberInfo.saveModel(new_member.id); 
             guild.saveModel(guild.id);
-            
-            send(new ResponseAddMember(ServerConstant.SUCCESS), user); 
+            send(new ResponseAddMember(ServerConstant.VALIDATE,null, ServerConstant.SUCCESS), user);
             
         } catch (Exception e) {
         }
@@ -189,66 +231,105 @@ public class GuildHandle extends BaseClientRequestHandler {
     private void processRemoveMember(User user, RequestRemoveMember member_remove) {
         logger.info("*************************processRemoveMember***************");        
         try {
-            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(member_remove.id, ZPUserInfo.class);
-            if (memberInfo == null) {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
                ////send response error
-                logger.debug("khong ton tai user bi kick");
-               send(new ResponseRemoveMember(ServerConstant.ERROR), user);
+                logger.debug("khong ton tai user");
+               send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                return;
             }
             
-            Guild guild = (Guild) Guild.getModel(user.getId(), Guild.class);
+            ZPUserInfo memberRemoveInfo = (ZPUserInfo) ZPUserInfo.getModel(member_remove.id, ZPUserInfo.class);
+            if (memberRemoveInfo == null) {
+               ////send response error
+                logger.debug("khong ton tai user out bang");
+               send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
+               return;
+            }
+            
+            Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             if (guild == null) {
                 logger.debug("Khong ton tai guild, id guild = "+ user.getId());
-                send(new ResponseRemoveMember(ServerConstant.ERROR), user); 
+                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
                 return;
             }
-            guild.removeMember(member_remove.id);
-            memberInfo.leftGuild();
+            int id_leader = guild.getIdLeader();
+            if (memberRemoveInfo.id!=userInfo.id && id_leader!=userInfo.id){
+                logger.debug("Error! Nguoi ra quyet dinh loai bo khong phai bang chu, cung khong phai nguoi bi out");
+                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
+                return;
+            }
             
-            memberInfo.saveModel(member_remove.id);
+            memberRemoveInfo.leftGuild();
+            //thong bao cho toan the member
+            ResponseRemoveMember rs_removeMember = new ResponseRemoveMember(ServerConstant.TO_ALL, memberRemoveInfo, (short) 0);
+            for(Map.Entry<Integer, Short> member : guild.list_member.entrySet()) {
+                Integer id_member = member.getKey();
+                //User Member = BitZeroServer.getInstance().getUserManager().getUserById(id_member);
+                User Member = ExtensionUtility.globalUserManager.getUserById(id_member);
+                send (rs_removeMember, Member);
+            }
+            guild.removeMember(member_remove.id);
+            
+            memberRemoveInfo.saveModel(member_remove.id);
             guild.saveModel(guild.id);
             
-            send(new ResponseAddMember(ServerConstant.SUCCESS), user); 
+            send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.SUCCESS), user); 
             
         } catch (Exception e) {
         }
     }
 
-    private void processAddRequestMember(User user, RequestAddRequestMember member_add_rq) {
-        logger.info("*************************processAddRequestMember***************");        
-        try {
-            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(member_add_rq.id, ZPUserInfo.class);
+    private void processAddRequestMember(User user, RequestAddRequestMember guild_rq) {
+        logger.info("*************************processAddRequestMember***************");  
+        /*session ben phia nguoi yeu cau vao bang gui len server, goi tin RequestAddRequestMember chua id cua bang ma user muon xin vao
+         * server thong bao cho bang chu
+         * server cap nhat lai list require member trong Guild
+         * */
+        int id_member = user.getId();
+        try {            
+            ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(id_member, ZPUserInfo.class);
             if (memberInfo == null) {
                ////send response error
                 logger.debug("khong ton tai user yeu cau vao bang");
-               send(new ResponseAddRequestMember(ServerConstant.ERROR), user);
+                send(new ResponseAddRequestMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                return;
             }
             
-            Guild guild = (Guild) Guild.getModel(user.getId(), Guild.class);
+            Guild guild = (Guild) Guild.getModel(guild_rq.id, Guild.class);
             if (guild == null) {
-                logger.debug("Khong ton tai guild, id guild = "+ user.getId());
-                send(new ResponseAddRequestMember(ServerConstant.ERROR), user); 
+                logger.debug("Khong ton tai guild, id guild = "+ guild_rq.id);
+                send(new ResponseAddRequestMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                 return;
             }
-            if (!guild.checkListRequire(member_add_rq.id)){
-                logger.debug("Member dc them vao khong nam trong list request");
-                send(new ResponseAddRequestMember(ServerConstant.ERROR), user); 
+            if (guild.checkListRequire(id_member)){
+                logger.debug("Member dc them vao da nam trong list request");
+                send(new ResponseAddRequestMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
                 return;
             }
-            guild.addRequestMember(member_add_rq.id, memberInfo.name);            
-            
+            guild.addRequestMember(id_member, memberInfo.name);            
+            //thong bao cho bang chu
+            int id_leader = guild.getIdLeader();
+            User leader = ExtensionUtility.globalUserManager.getUserById(id_leader);
+            if (leader!=null){
+                send(new ResponseAddRequestMember(ServerConstant.TO_ALL, memberInfo, (short) 0), leader); 
+                return;
+            }
             guild.saveModel(guild.id);
             
-            send(new ResponseAddRequestMember(ServerConstant.SUCCESS), user); 
+            send(new ResponseAddRequestMember(ServerConstant.VALIDATE,null, ServerConstant.SUCCESS), user);
             
         } catch (Exception e) {
         }
     }
 
-    private void processDenyRequestMember(User user, RequestDenyRequestMember member_deny_rq) {
-        logger.info("*************************processDenyRequestMember***************");        
+    private void processDenyRequestMember(User user, RequestDenyRequestMember member_deny_rq) {        
+        logger.info("*************************processDenyRequestMember***************");       
+        /*session ben phia bang chu gui len server, 
+         * goi tin processDenyRequestMember chua id cua nguoi ma bang chu khong muon cho vao bang         
+         * server cap nhat lai list require member trong Guild
+         * server thong bao phan hoi true/false cho bang chu
+         * */
         try {
             ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(member_deny_rq.id, ZPUserInfo.class);
             if (memberInfo == null) {
@@ -257,8 +338,15 @@ public class GuildHandle extends BaseClientRequestHandler {
                send(new ResponseDenyRequestMember(ServerConstant.ERROR), user);
                return;
             }
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(member_deny_rq.id, ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+                logger.debug("khong ton tai user gui goi tin len");
+               send(new ResponseDenyRequestMember(ServerConstant.ERROR), user);
+               return;
+            }
             
-            Guild guild = (Guild) Guild.getModel(user.getId(), Guild.class);
+            Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             if (guild == null) {
                 logger.debug("Khong ton tai guild, id guild = "+ user.getId());
                 send(new ResponseDenyRequestMember(ServerConstant.ERROR), user); 
@@ -269,14 +357,100 @@ public class GuildHandle extends BaseClientRequestHandler {
                 send(new ResponseDenyRequestMember(ServerConstant.ERROR), user); 
                 return;
             }
-            guild.removeRequestMember(member_deny_rq.id);            
+            logger.info("Tu choi nguoi choi "+ memberInfo.name+ " vao bang co id = "+guild.id);
             
-            guild.saveModel(guild.id);
+            guild.removeRequestMember(member_deny_rq.id);      
+            
             
             send(new ResponseDenyRequestMember(ServerConstant.SUCCESS), user); 
             
         } catch (Exception e) {
         }
+    }
+
+    private void processSearchGuild(User user, RequestSearchGuild search_guild) {
+        logger.info("*************************processSearchGuild***************");      
+        /* xu ly luong tim kiem bang hoi
+         * goi tin gui len bao gom < type: search theo id hoac theo ten, id, ten>
+         * goi tin tra ve 1 list danh sach cac thong tin bang phu hop
+         * */
+        try {
+            ListGuild listGuild = (ListGuild) ListGuild.getModel(1, ListGuild.class);
+            if (listGuild ==null){ //neu listGuild chua duoc khoi tao
+                send(new ResponseSearchGuild(ServerConstant.ERROR, null), user); 
+                return;
+            }
+            Queue<Guild> queue;
+            if (search_guild.type == ServerConstant.SEARCH_ID){
+                Guild suggest_guild = (Guild) Guild.getModel(search_guild.id_search, Guild.class);
+                queue  = new PriorityQueue<Guild>();
+                queue.add(suggest_guild);
+            }else {
+                queue = listGuild.searchNameGuild(search_guild.string);    
+            }
+            
+            send(new ResponseSearchGuild(ServerConstant.SUCCESS,queue), user);
+            
+        } catch (Exception e) {
+        }
+        
+        
+        
+    }
+
+    private void processGetGuildInfo(User user, RequestGetGuildInfo get_guild_info) {
+        logger.info("*************************processGetGuildInfo***************");
+        try {
+            Guild guild = (Guild) Guild.getModel(get_guild_info.id, Guild.class);
+            send(new ResponseGetGuildInfo(guild), user); 
+            
+        } catch (Exception e) {
+            logger.debug("Khong ton tai guild, id = "+ get_guild_info.id);
+        }
+    }
+
+    private void processEditGuildInfo(User user, RequestEditGuildInfo edit_guild_info) {
+        logger.info("*************************processGetGuildInfo***************");
+        try {
+            Guild guild = (Guild) Guild.getModel(edit_guild_info.id, Guild.class);
+            if (guild.getIdLeader()!= user.getId()){
+                logger.debug("Nguoi yeu cau edit khong phai la leader, id user= "+guild.getIdLeader()+ "id _leader= "+ user.getId());
+                send(new ResponseEditGuildInfo(ServerConstant.ERROR), user); 
+                return;
+            }
+            
+            guild.setName(edit_guild_info.name);
+            guild.setLogo_id(edit_guild_info.logo_id);
+            guild.setStatus(edit_guild_info.status);
+            guild.setDanh_vong_require(edit_guild_info.require_danh_vong);
+            guild.setDescription(edit_guild_info.description);
+            
+            guild.saveModel(guild.id);
+            send(new ResponseEditGuildInfo(ServerConstant.SUCCESS), user); 
+            
+        } catch (Exception e) {
+            logger.debug("Khong ton tai guild, id = "+ edit_guild_info.id);
+            send(new ResponseEditGuildInfo(ServerConstant.ERROR), user); 
+        }
+    }
+
+    private int checkResourceExchange(ZPUserInfo userInfo, int _gold) {
+        int g = 0;
+        if (userInfo.gold < _gold){
+            g+=goldToG(_gold-userInfo.gold);                    
+        };
+        return g;
+    }
+    private int goldToG(int gold_bd) {
+        return gold_bd;
+    }
+
+    private int elixirToG(int elixir_bd) {
+        return elixir_bd;
+    }
+
+    private int darkElixirToG(int darkElixir_bd) {
+        return darkElixir_bd;
     }
 }
 

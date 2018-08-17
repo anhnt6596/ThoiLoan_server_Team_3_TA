@@ -3,15 +3,7 @@ package cmd.send.demo;
 import bitzero.server.extensions.data.BaseMsg;
 
 import cmd.CmdDefine;
-
-
-import java.awt.Point;
-
 import java.nio.ByteBuffer;
-
-import model.Building;
-import model.MapInfo;
-import cmd.obj.map.Obs;
 
 import model.Troop;
 import model.TroopInfo;
