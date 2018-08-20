@@ -70,13 +70,13 @@ public class MapInfo extends DataModel{
     private void InitJsonData() {
         int number_obs =57;
         List<Integer> list_obs = new ArrayList<Integer>();
-        String path = System.getProperty("user.dir")+"/conf/";
+        String path = System.getProperty("user.dir")+"/conf/Config_json/";
 //        System.out.println("Working Directory = " + );
           
         StringBuffer contents = new StringBuffer();
         
         try {
-            File file = new File(path+"init.json");
+            File file = new File(path+"InitGame.json");
             Reader r = new InputStreamReader(new FileInputStream(file), "UTF-8");
             BufferedReader reader = new BufferedReader(r);
             String text = null;
