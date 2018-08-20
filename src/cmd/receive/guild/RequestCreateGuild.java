@@ -11,8 +11,7 @@ import java.nio.ByteBuffer;
 
 
 
-public class RequestCreateGuild extends BaseCmd{
-    public int id;
+public class RequestCreateGuild extends BaseCmd{    
     public String name;
     public int logo_id;
     public short status;
@@ -27,8 +26,7 @@ public class RequestCreateGuild extends BaseCmd{
     @Override
     public void unpackData() {  
         ByteBuffer bf = makeBuffer();
-        try {            
-            this.id = readInt(bf); //id nay la id trong mang listBuilding/MapInfo
+        try {                        
             this.name = readString(bf);
             this.logo_id = readInt(bf);
             this.status = readShort(bf);

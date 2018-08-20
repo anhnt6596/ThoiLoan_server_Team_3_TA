@@ -35,7 +35,8 @@ public class ResponseRequestUserInfo extends BaseMsg {
             bf.putInt(info.id_guild);
             putStr(bf, info.name_guild);
             bf.putInt(info.id_logo_guild);
-            bf.putInt(info.last_time_ask_for_troops);
+            bf.putLong(info.last_time_ask_for_troops);
+            bf.putLong(info.last_time_left_guild);
         }
         return packBuffer(bf);
     }

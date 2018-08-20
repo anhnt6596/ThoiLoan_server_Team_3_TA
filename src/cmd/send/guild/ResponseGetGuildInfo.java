@@ -6,9 +6,12 @@ import cmd.CmdDefine;
 
 import java.nio.ByteBuffer;
 
+import java.util.Map;
 import java.util.Queue;
 
 import model.Guild;
+
+import model.ZPUserInfo;
 
 import util.server.ServerConstant;
 
@@ -24,9 +27,9 @@ public class ResponseGetGuildInfo extends BaseMsg {
         ByteBuffer bf = makeBuffer();
         bf.putInt(guild.id);
         putStr(bf,guild.name);                
+        bf.putInt(guild.logo_id);
         bf.putShort(guild.status);
         bf.putInt(guild.level);
-        bf.putInt(guild.list_member.size());
         bf.putInt(guild.danh_vong);
         bf.putInt(guild.danh_vong_require);
         return packBuffer(bf);

@@ -4,6 +4,8 @@ import bitzero.server.entities.User;
 
 import bitzero.util.ExtensionUtility;
 
+import cmd.send.guild.ResponseSearchGuild;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,6 +27,11 @@ public class Guild extends DataModel implements Comparable<Guild> {
     public String description = "";
     public Short status; //open 0, close 1, confirm 2;
     public int exp = 0;
+    public int level;
+    public int logo_id;
+    public List<MessageGuild> list_message = new LinkedList<MessageGuild>();
+    public Map <Integer, String> list_require = new HashMap<Integer, String>();
+    public Map <Integer, Short> list_member = new HashMap<Integer, Short>();
 
     public int getId() {
         return id;
@@ -45,14 +52,7 @@ public class Guild extends DataModel implements Comparable<Guild> {
     public Short getStatus() {
         return status;
     }
-    public int level;
-    public int logo_id;
-    public List<MessageGuild> list_message = new LinkedList<MessageGuild>();
-    public Map <Integer, String> list_require = new HashMap<Integer, String>();
-    public Map <Integer, Short> list_member = new HashMap<Integer, Short>();
-
     
-
     public Guild(int id_user, String _name, int _logo_id, short _status, int _danh_vong_require, String _description) {
         super();
         this.id = id_user;
@@ -75,11 +75,10 @@ public class Guild extends DataModel implements Comparable<Guild> {
     //bang hoi them nguoi
     public void addMember(int _id_user, short _position) {
         this.list_require.remove(_id_user);
-        this.list_member.put(_id_user, _position);
-        ZPUserInfo user;
+        this.list_member.put(_id_user, _position);         
         try {
-            user = (ZPUserInfo) ZPUserInfo.getModel(_id_user, ZPUserInfo.class);
-            if (user == null) {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(_id_user, ZPUserInfo.class);
+            if (userInfo == null) {
                 //send response error
             }
         } catch (Exception e) {
@@ -244,5 +243,62 @@ public class Guild extends DataModel implements Comparable<Guild> {
         } else {
             return 0;
         }
+    }
+    public void chuyenBangChu(int member_id){
+        //chuyen bang chu thanh bang pho
+        int leader_id = this.getIdLeader();
+        this.list_member.put(leader_id, ServerConstant.guild_moderator);
+        
+        //chuyen nguoi duoc chon thanh bang chu
+        this.list_member.put(member_id, ServerConstant.guild_leader);
+    }
+    public void chuyenBangPho (int member_id){
+        this.list_member.put(member_id, ServerConstant.guild_moderator);
+    }
+    public void chuyenThanhVien(int member_id){
+        this.list_member.put(member_id, ServerConstant.guild_member);
+    }    
+    public void BangchuOutBang(){
+        //truong hop bang chi co 1 thanh vien
+        if (this.list_member.size()==1){
+            try {
+                ListGuild listGuild = (ListGuild) ListGuild.getModel(1, ListGuild.class);
+                listGuild.list_guild.remove(this.id);
+            } catch (Exception e) {
+                }
+        }
+        else { //truong hop bang co 2 thanh vien tro len
+            int id_nguoiduocchon = 0 ;
+            short chucvu_nguoiduocchon = 0;
+            int danhvong_nguoiduocchon = 0;
+            //chon ra bang pho co danh vong cao nhat    
+            for(Map.Entry<Integer, Short> member : list_member.entrySet()) {
+                Integer id_member = member.getKey();
+                Short position = member.getValue();
+                
+                try {
+                    ZPUserInfo memberInfo = (ZPUserInfo) ZPUserInfo.getModel(id_member, ZPUserInfo.class);
+                    int danhvong_member = memberInfo.getDanhVong();
+                    if (position > chucvu_nguoiduocchon){
+                        id_nguoiduocchon = id_member;
+                        chucvu_nguoiduocchon = position;                        
+                        danhvong_nguoiduocchon = danhvong_member;
+                    }
+                    else if (position == chucvu_nguoiduocchon){
+                        if (danhvong_nguoiduocchon < danhvong_member){
+                            id_nguoiduocchon = id_member;
+                            danhvong_nguoiduocchon = danhvong_member;
+                        }
+                    }
+                } catch (Exception e) {
+                }
+            }
+            int id_bangchu_cu = getIdLeader();
+            chuyenBangChu(id_nguoiduocchon);
+            this.list_member.remove(id_bangchu_cu);
+            
+        }        
+        
+        
     }
 }
