@@ -43,7 +43,7 @@ public class ListGuild extends DataModel{
     }
 
     private boolean checkSubString(String string, String guild_name) {
-        if (guild_name != null && guild_name.contains(string)){
+        if (guild_name != null && guild_name.toLowerCase().contains(string.toLowerCase())){
             return true;
         }
         return false;

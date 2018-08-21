@@ -45,6 +45,10 @@ public class ServerConstant {
     public static final short guild_leader = 2;
     public static final short guild_moderator = 1;
     public static final short guild_member = 0;
+    public static final short guild_status_open = 0;
+    public static final short guild_status_close = 1;
+    
+    public static final short guild_status_confirm = 2;
         
     public static JSONObject configInitGame ;
     public static JSONObject configArmyCamp ;

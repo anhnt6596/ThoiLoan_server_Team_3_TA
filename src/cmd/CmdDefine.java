@@ -68,10 +68,8 @@ public class CmdDefine {
     public static final short SEARCH_GUILD_INFO = 5006;    
     public static final short GET_GUILD_INFO = 5007;
     public static final short EDIT_GUILD_INFO = 5008;
-    public static final short SET_GUILD_LEADER = 5009;
-    public static final short SET_GUILD_MODERATOR = 5010;
-    public static final short SET_GUILD_MEMBER = 5011;
-    public static final short GET_GUILD_LISTMEMBER_INFO = 5012;
+    public static final short SET_GUILD_POSITION = 5009;
+    public static final short GET_GUILD_LISTMEMBER_INFO = 5010;
     
     
 

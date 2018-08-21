@@ -8,10 +8,11 @@ import bitzero.util.common.business.CommonHandle;
 import java.nio.ByteBuffer;
 
 
-public class RequestSetGuildLeader extends BaseCmd{
+public class RequestSetGuildPosition extends BaseCmd{
+    public short type_position;
     public int id;  
         
-    public RequestSetGuildLeader(DataCmd dataCmd) {
+    public RequestSetGuildPosition(DataCmd dataCmd) {
         super(dataCmd);
         unpackData();
     }
@@ -19,7 +20,8 @@ public class RequestSetGuildLeader extends BaseCmd{
     @Override
     public void unpackData() {
         ByteBuffer bf = makeBuffer();
-        try {            
+        try {           
+            this.type_position = readShort(bf);
             this.id = readInt(bf); 
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);}

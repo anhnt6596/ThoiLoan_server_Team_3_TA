@@ -32,6 +32,8 @@ public class ResponseGetGuildInfo extends BaseMsg {
         bf.putInt(guild.level);
         bf.putInt(guild.danh_vong);
         bf.putInt(guild.danh_vong_require);
+        bf.putInt(guild.list_member.size());
+        putStr(bf,guild.description);
         return packBuffer(bf);
     }
 }

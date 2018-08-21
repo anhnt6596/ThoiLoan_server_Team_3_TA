@@ -55,6 +55,8 @@ public class ZPUserInfo extends DataModel {
     public int id_logo_guild = -1;
     public long last_time_ask_for_troops = 0;
     public long last_time_left_guild = 0;
+    public short donate_troop = 0;
+    public short request_troop = 0;
     
     public ZPUserInfo(int _id, String _name) {
         super();

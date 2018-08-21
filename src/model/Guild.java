@@ -30,8 +30,8 @@ public class Guild extends DataModel implements Comparable<Guild> {
     public int level;
     public int logo_id;
     public List<MessageGuild> list_message = new LinkedList<MessageGuild>();
-    public Map <Integer, String> list_require = new HashMap<Integer, String>();
-    public Map <Integer, Short> list_member = new HashMap<Integer, Short>();
+    public Map <Integer, String> list_require = new HashMap<Integer, String>(); //id, name
+    public Map <Integer, Short> list_member = new HashMap<Integer, Short>(); 
 
     public int getId() {
         return id;
@@ -53,9 +53,9 @@ public class Guild extends DataModel implements Comparable<Guild> {
         return status;
     }
     
-    public Guild(int id_user, String _name, int _logo_id, short _status, int _danh_vong_require, String _description) {
+    public Guild(int id_user, int guild_id, String _name, int _logo_id, short _status, int _danh_vong_require, String _description) {
         super();
-        this.id = id_user;
+        this.id = guild_id;
         this.name = _name;
         this.level = 1;
         this.exp = 0;
@@ -74,16 +74,13 @@ public class Guild extends DataModel implements Comparable<Guild> {
     }
     //bang hoi them nguoi
     public void addMember(int _id_user, short _position) {
-        this.list_require.remove(_id_user);
-        this.list_member.put(_id_user, _position);         
-        try {
-            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(_id_user, ZPUserInfo.class);
-            if (userInfo == null) {
-                //send response error
-            }
-        } catch (Exception e) {
-            
+        String position = this.list_require.get(_id_user);
+        if (position!= null){
+            this.list_require.remove(_id_user);
         }
+        System.out.println("them nguoi co id: "+_id_user + " guild_status_open, id= "+ this.id);
+        this.list_member.put(_id_user, _position);    
+        System.out.println("so mem ber la: "+ this.list_member.size());
     }
     
     public void addMessage(MessageGuild message){
@@ -140,11 +137,19 @@ public class Guild extends DataModel implements Comparable<Guild> {
         this.list_require.remove(_id_user);
     }
     public boolean checkListRequire(int id){
+        //return true;       
+        for(Map.Entry<Integer, String> member : this.list_require.entrySet()) {
+            Integer id_member = member.getKey();
+            String position = member.getValue();   
+            if (id_member == id){
+                return false;
+            }
+                }
         return true;
     }
-    public boolean checkListmember(int id){
-        return true;
-    }
+//    public boolean checkListmember(int id){
+//        return true;
+//    }
 
     public int getIdLeader() {
         for(Map.Entry<Integer, Short> member : list_member.entrySet()) {
@@ -300,5 +305,12 @@ public class Guild extends DataModel implements Comparable<Guild> {
         }        
         
         
+    }
+
+    public boolean checkIdMod(int id) {
+        if (this.list_member.get(id)== ServerConstant.guild_moderator){
+            return true;
+        }
+        return false;
     }
 }
