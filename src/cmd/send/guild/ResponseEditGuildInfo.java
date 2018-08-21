@@ -1,4 +1,4 @@
-package cmd.send.guild;
+ package cmd.send.guild;
 
 import bitzero.server.extensions.data.BaseMsg;
 

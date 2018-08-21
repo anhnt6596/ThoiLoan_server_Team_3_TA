@@ -11,16 +11,17 @@ import model.ZPUserInfo;
 import util.server.ServerConstant;
 
 
-public class ResponseAddMember extends BaseMsg {
-    private short type;
-    private ZPUserInfo member;
+public class ResponseSetGuildPosition extends BaseMsg {
+    private short type;    
+    private short type_position;    
     private short validate;
+    private int id;
 
-    public ResponseAddMember(short type, ZPUserInfo member, short validate) {
-        super(CmdDefine.ADD_MEMBER);
-        this.type = type;
-        this.member = member;
+    public ResponseSetGuildPosition(short type, int id , short type_position, short validate) {
+        super(CmdDefine.SET_GUILD_POSITION);
+        this.id = type;        
         this.validate = validate;
+        this.type_position = type_position;
     }
 
     @Override
@@ -31,8 +32,8 @@ public class ResponseAddMember extends BaseMsg {
             bf.putShort(this.validate);    
         }
         else { //gui cho tat ca moi nguoi khac trong guild
-            bf.putInt(member.id);
-            putStr(bf,member.name);
+            bf.putInt(this.id);  
+            bf.putShort(this.type_position);
         }
         
         return packBuffer(bf);

@@ -30,8 +30,9 @@ public class RequestEditGuildInfo extends BaseCmd{
             this.logo_id = readInt(bf);
             this.status = readShort(bf);
             this.require_danh_vong = readInt(bf);
-            this.description = readString(bf);;
+            this.description = readString(bf);
         }catch (Exception e) {
-            CommonHandle.writeErrLog(e);}
+            CommonHandle.writeErrLog(e);
+        }
     }
 }

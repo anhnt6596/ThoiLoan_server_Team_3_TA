@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import java.util.Random;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -39,6 +41,7 @@ public class ZPUserInfo extends DataModel {
     public int id;
     public String name;
     public long exp = 0L;
+    public int danhvong = 0;
     //public int level = 0;
     public int gold = 0;
     public int coin = 1000;
@@ -50,7 +53,10 @@ public class ZPUserInfo extends DataModel {
     public int id_guild = -1;
     public String name_guild = "";
     public int id_logo_guild = -1;
-    public int last_time_ask_for_troops = 0;
+    public long last_time_ask_for_troops = 0;
+    public long last_time_left_guild = 0;
+    public short donate_troop = 0;
+    public short request_troop = 0;
     
     public ZPUserInfo(int _id, String _name) {
         super();
@@ -58,12 +64,21 @@ public class ZPUserInfo extends DataModel {
         name = _name;        
         InitJsonData();        
     }
-    
+
+    public void setDanhVong(int danhvong) {
+        this.danhvong = danhvong;
+    }
+
+    public int getDanhVong() {
+        return danhvong;
+    }
+
     public String toString() {
         return String.format("%s|%s", new Object[] { id, name });
     }
     
     private void InitJsonData() {
+        this.danhvong = new Random().nextInt(2500) + 1;
         String path = System.getProperty("user.dir")+"/conf/";
         StringBuffer contents = new StringBuffer();
         
@@ -209,7 +224,7 @@ public class ZPUserInfo extends DataModel {
         this.last_time_ask_for_troops = last_time_ask_for_troops;
     }
 
-    public int getLast_time_ask_for_troops() {
+    public long getLast_time_ask_for_troops() {
         return last_time_ask_for_troops;
     }
 
@@ -277,6 +292,7 @@ public class ZPUserInfo extends DataModel {
     }
     public void leftGuild(){
         this.is_in_guild = false;
+        this.last_time_left_guild = System.currentTimeMillis();
     }
 
     public void getId() {

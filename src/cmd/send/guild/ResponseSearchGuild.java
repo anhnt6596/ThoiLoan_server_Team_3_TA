@@ -26,14 +26,18 @@ public class ResponseSearchGuild extends BaseMsg {
         ByteBuffer bf = makeBuffer();
         if (this.validate == ServerConstant.ERROR){
             bf.putInt(0);
+            
         } 
         else if (this.validate == ServerConstant.SUCCESS){
+            
             int listSize = this.list_suggest_guild.size();
             bf.putInt(listSize);
+            System.out.println("Co "+listSize+" bang duoc tim thay");
             for (int i=0;i<listSize;i++){
                 Guild guild = this.list_suggest_guild.poll();
                 bf.putInt(guild.id);
-                putStr(bf,guild.name);                
+                putStr(bf,guild.name);
+                bf.putInt(guild.logo_id);
                 bf.putShort(guild.status);
                 bf.putInt(guild.level);
                 bf.putInt(guild.list_member.size());

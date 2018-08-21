@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 
 public class RequestSearchGuild extends BaseCmd {
     public short type;
-    public int id_search;
+    //public int id_search;
     public String string;
 
     public RequestSearchGuild(DataCmd dataCmd) {
@@ -22,7 +22,7 @@ public class RequestSearchGuild extends BaseCmd {
         ByteBuffer bf = makeBuffer();
         try {
             this.type = readShort(bf);
-            this.id_search = readInt(bf);
+            //this.id_search = readInt(bf);
             this.string = readString(bf);
         } catch (Exception e) {
             e.printStackTrace();
