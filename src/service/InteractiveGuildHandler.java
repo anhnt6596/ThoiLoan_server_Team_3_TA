@@ -8,9 +8,11 @@ import bitzero.server.extensions.data.DataCmd;
 
 import cmd.CmdDefine;
 
+import cmd.receive.guild.RequestGetInteractionGuild;
 import cmd.receive.guild.RequestGiveTroop;
 import cmd.receive.guild.RequestSendNewMessage;
 
+import cmd.send.guild.ResponseGetInteractionGuild;
 import cmd.send.guild.ResponseGiveTroop;
 import cmd.send.guild.ResponseSendNewMessage;
 
@@ -48,6 +50,8 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             System.out.println("dataCmd.getId()" + dataCmd.getId());
             switch (dataCmd.getId()) {
                 case CmdDefine.GET_INTERACTION_GUILD:
+                    RequestGetInteractionGuild guildMessage = new RequestGetInteractionGuild(dataCmd);
+                    processRequestGetInteractionGuild(user, guildMessage);
                     break;
                 case CmdDefine.NEW_MESSAGE:
                     RequestSendNewMessage messagePacket = new RequestSendNewMessage(dataCmd);
@@ -159,6 +163,23 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             guildBuilding.saveModel(packet.idUserGet);
             
         } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+    
+    private void processRequestGetInteractionGuild(User user, RequestGetInteractionGuild packet) {
+        try{
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               return;
+            }
+            
+            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+            Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
+            
+            send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message), user);
+            
+        }catch (Exception e) {
             System.out.println(e);
         }
     }

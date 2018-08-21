@@ -132,9 +132,4 @@ public class BarrackQueue extends DataModel {
             
         }
     }
-    
-    //Dang train ma upgrade Barrack thi stop train. Sau khi upgrade xong thi load lai old data
-    public void copyFromOldBarrackQueue(BarrackQueue oldBarrackQueue){
-        
-    }
 }
