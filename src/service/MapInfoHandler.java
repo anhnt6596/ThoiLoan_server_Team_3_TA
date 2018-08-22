@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 
 import model.Building;
+import model.GuildBuilding;
 import model.MapInfo;
 import model.ZPUserInfo;
 
@@ -428,6 +429,11 @@ MapInfoHandler extends BaseClientRequestHandler {
                         userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin+g_release, building.type, false);
                         mapInfo.upgradeBuilding(upgrade_construction.id);
                         
+                        if (building.type.equals("CLC_1") && building.level ==0){
+                                GuildBuilding guildBuilding = new GuildBuilding();
+                                guildBuilding.saveModel(user.getId());
+                        }
+                        
                         userInfo.saveModel(user.getId());
                         mapInfo.saveModel(user.getId());
                         logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
@@ -439,6 +445,11 @@ MapInfoHandler extends BaseClientRequestHandler {
                     userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);                    
                     mapInfo.upgradeBuilding(upgrade_construction.id);
                     
+                    if (building.type.equals("CLC_1") && building.level ==0){
+                            GuildBuilding guildBuilding = new GuildBuilding();
+                            guildBuilding.saveModel(user.getId());
+                    }
+                        
                     userInfo.saveModel(user.getId());
                     mapInfo.saveModel(user.getId());
                     logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
@@ -820,6 +831,10 @@ MapInfoHandler extends BaseClientRequestHandler {
                 mapInfo.listBuilding.get(quick_finish.id).setStatus(ServerConstant.complete_status);
                 mapInfo.listBuilding.get(quick_finish.id).setStartTime();
                 mapInfo.print();
+                if (building.type.equals("CLC_1") && building.level ==0){
+                        GuildBuilding guildBuilding = new GuildBuilding();
+                        guildBuilding.saveModel(user.getId());
+                }
                 
                 mapInfo.saveModel(user.getId());
                 userInfo.saveModel(user.getId());

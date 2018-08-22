@@ -25,14 +25,10 @@ public class ResponseRemoveMember extends BaseMsg {
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-        
-        if (this.type == ServerConstant.VALIDATE){
-            bf.putShort(this.validate);    
-        }
-        else {
-            bf.putInt(member.id);
-            putStr(bf,member.name);
-        }
+        System.out.println("this.validate = "+ this.validate);
+        bf.putShort(this.validate);
+        System.out.println("this.member.id = "+ this.member.id);
+        bf.putInt(this.member.id);        
         
         return packBuffer(bf);
     }

@@ -22,6 +22,10 @@ public class ListGuild extends DataModel{
         numberOfGuild++;
         this.list_guild.put(numberOfGuild, name);
     }
+    public void removeGuild(int id){
+        numberOfGuild--;
+        this.list_guild.remove(id);
+    }
     public Queue<Guild> searchNameGuild(String string){
         // Init PriorityQueue
         Queue<Guild> queue = new PriorityQueue<Guild>(50);
