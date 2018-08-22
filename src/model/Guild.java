@@ -137,6 +137,9 @@ public class Guild extends DataModel implements Comparable<Guild> {
         this.list_require.put(_id_user, _name);       
          
     }
+    public short getPosition(int id){
+        return this.list_member.get(id);
+    }
     public void removeRequestMember(int _id_user){
         this.list_require.remove(_id_user);
     }

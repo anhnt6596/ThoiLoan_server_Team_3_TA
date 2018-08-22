@@ -145,6 +145,11 @@ public class GuildHandle extends BaseClientRequestHandler {
                send(new ResponseCreateGuild(ServerConstant.ERROR, null), user);
                return;
             }
+            if (userInfo.isIs_in_guild()){
+                logger.debug("nguoi choi da co bang, id bang = "+ userInfo.getId_guild());
+                send(new ResponseCreateGuild(ServerConstant.ERROR, null), user);
+                return;
+            }
             int g_chuyendoi = checkResourceExchange(userInfo,ServerConstant.CREATE_GUILD_COST);
             if (g_chuyendoi>userInfo.getCoin()){
                 logger.info("User khong du tien tao bang");
@@ -260,6 +265,11 @@ public class GuildHandle extends BaseClientRequestHandler {
                 send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
                 return;
             }
+            if ( userInfo.id!= member_remove.id  && id_leader!=userInfo.id &&  guild.getPosition(userInfo.id)<= guild.getPosition(member_remove.id)){
+                logger.debug("ERR! nguoi ra quyet dinh co chuc danh = "+ guild.getPosition(userInfo.id) + ", trong khi nguoi bi loai co chuc danh = "+ guild.getPosition(member_remove.id));
+                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
+                return;
+            }
             
             memberRemoveInfo.leftGuild();
             //thong bao cho toan the member
@@ -274,10 +284,10 @@ public class GuildHandle extends BaseClientRequestHandler {
             }
             guild.removeMember(member_remove.id);
             logger.debug("member bi kick co id la = "+ member_remove.id);
-            guild.saveModel(guild.id);   
+            guild.saveModel(guild.id);
             if (guild.list_member.size()==0){
                 System.out.println("Bang khong con ai");
-                ListGuild listGuild = (ListGuild) ListGuild.getModel(user.getId(), ListGuild.class);
+                ListGuild listGuild = (ListGuild) ListGuild.getModel(1, ListGuild.class);
                 listGuild.removeGuild(guild.id);
                 listGuild.saveModel(1);
             }
@@ -510,28 +520,34 @@ public class GuildHandle extends BaseClientRequestHandler {
             if (userInfo == null) {
                ////send response error
                 logger.debug("khong ton tai user ");
-               send (new ResponseSetGuildPosition(ServerConstant.VALIDATE, (short) 0, (short) 0, ServerConstant.ERROR), user);
+               send (new ResponseSetGuildPosition(ServerConstant.ERROR, new_guild_position.id, new_guild_position.type_position ), user);
                return;
             }
             
             Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             if (guild.getIdLeader()!= user.getId()){
                 logger.debug("Nguoi yeu cau edit khong phai la leader, id user= "+guild.getIdLeader()+ "id _leader= "+ user.getId());
-                send (new ResponseSetGuildPosition(ServerConstant.VALIDATE, (short) 0, (short) 0, ServerConstant.ERROR), user);
+                send (new ResponseSetGuildPosition(ServerConstant.ERROR, new_guild_position.id, new_guild_position.type_position ), user);
                 return;
             }
+            logger.debug("new_guild_position.type_position = " + new_guild_position.type_position);
             if (new_guild_position.type_position == ServerConstant.guild_leader){
+                logger.debug("Chuyen bang chu, id member = "+new_guild_position.id + "id ng chuyen= "+ user.getId());
                 guild.chuyenBangChu(new_guild_position.id);    
             }
             else if (new_guild_position.type_position == ServerConstant.guild_moderator){
+                logger.debug("Chuyen bang pho, id member = "+new_guild_position.id + "id ng chuyen= "+ user.getId());
                 guild.chuyenBangPho(new_guild_position.id);
             }
             else if (new_guild_position.type_position == ServerConstant.guild_member){
+                logger.debug("Chuyen thanh vien, id member = "+new_guild_position.id + "id " +
+                    "ng chuyen= "+ user.getId());
+                
                 guild.chuyenThanhVien(new_guild_position.id);
             }
             
             //thong bao cho toan the member
-            ResponseSetGuildPosition rsMember = new ResponseSetGuildPosition(ServerConstant.TO_ALL, new_guild_position.id, new_guild_position.type_position, (short) 0);
+            ResponseSetGuildPosition rsMember = new ResponseSetGuildPosition(ServerConstant.SUCCESS, new_guild_position.id, new_guild_position.type_position );
             for(Map.Entry<Integer, Short> member : guild.list_member.entrySet()) {
                 Integer id_member = member.getKey();
                 User Member = BitZeroServer.getInstance().getUserManager().getUserById(id_member);

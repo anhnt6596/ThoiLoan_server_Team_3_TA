@@ -17,10 +17,10 @@ public class ResponseSetGuildPosition extends BaseMsg {
     private short validate;
     private int id;
 
-    public ResponseSetGuildPosition(short type, int id , short type_position, short validate) {
-        super(CmdDefine.SET_GUILD_POSITION);
-        this.id = type;        
+    public ResponseSetGuildPosition(short validate, int id , short type_position ) {
+        super(CmdDefine.SET_GUILD_POSITION);          
         this.validate = validate;
+        this.id = id;
         this.type_position = type_position;
     }
 
@@ -28,14 +28,10 @@ public class ResponseSetGuildPosition extends BaseMsg {
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
         
-        if (this.type == ServerConstant.VALIDATE){
-            bf.putShort(this.validate);    
-        }
-        else { //gui cho tat ca moi nguoi khac trong guild
-            bf.putInt(this.id);  
-            bf.putShort(this.type_position);
-        }
-        
+        bf.putShort(this.validate);
+        bf.putInt(this.id);
+        bf.putShort(this.type_position);
+                
         return packBuffer(bf);
     }
 }
