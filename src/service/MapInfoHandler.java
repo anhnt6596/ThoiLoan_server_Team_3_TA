@@ -34,6 +34,7 @@ import cmd.receive.map.RequestRemoveObs;
 
 import cmd.receive.map.RequestUpgradeMultiWall;
 
+import cmd.send.demo.ResponseMoveMultiWall;
 import cmd.send.demo.ResponseRequestAddConstruction;
 import cmd.send.demo.ResponseRequestCancleConstruction;
 import cmd.send.demo.ResponseRequestFinishTimeConstruction;
@@ -1216,17 +1217,22 @@ MapInfoHandler extends BaseClientRequestHandler {
         logger.info("*****************processMoveMultiWall***************" );        
         for (int i=0; i< move_multiWall.length_wall; i++){
             Wall wall = move_multiWall.listWall.get(i);
-            processMoveWall(user, wall.id, wall.posX, wall.posY);
+            boolean dd = processMoveWall(user, wall.id, wall.posX, wall.posY);
+            if (!dd){
+                send(new ResponseMoveMultiWall(ServerConstant.ERROR), user);
+            }
         }
+        send(new ResponseMoveMultiWall(ServerConstant.SUCCESS), user);
         
     }
-    private void processMoveWall(User user, int id, int posX, int posY) {
+    private boolean processMoveWall(User user, int id, int posX, int posY) {
         
         try {
             
             MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
             if (mapInfo == null) {
                 //send response error
+                return false;
             }
             logger_move.debug("Map Info truoc khi move");
             //mapInfo.print();
@@ -1246,15 +1252,18 @@ MapInfoHandler extends BaseClientRequestHandler {
                 System.out.println("VI TRI MOI="+mapInfo.listBuilding.get(id).posX+" "+mapInfo.listBuilding.get(id).posY);
                 mapInfo.saveModel(user.getId());
                 //send(new ResponseRequestMoveConstruction(ServerConstant.SUCCESS), user);
+                return true;
             }
             else{
                 System.out.println("new positionnnnn = FALSE"  );
+                return false;
                 //mapInfo.saveModel(user.getId());
                 //send(new ResponseRequestMoveConstruction(ServerConstant.ERROR), user);
             }
                 
                    
                } catch (Exception e) {
+                return false;
             }
     }
 
@@ -1280,6 +1289,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
                return;
             }
+            
             for (int i=0; i< upgrade_multiWall.length_wall; i++){
                 int id = upgrade_multiWall.listWall.get(i);
                 Building building = mapInfo.listBuilding.get(id);
@@ -1294,6 +1304,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 elixir = elixir + getElixir(building.type,building.level+1);
                 darkElixir = darkElixir + getDarkElixir(building.type,building.level+1);
             }
+            
             
             if ((exchange_resource+coin<userInfo.coin)){ 
                 System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
@@ -1329,24 +1340,30 @@ MapInfoHandler extends BaseClientRequestHandler {
                         send(new ResponseUpgradeMultiWall(ServerConstant.SUCCESS), user);
                     }                    
                 }
+                else {
+                    for (int i=0; i< upgrade_multiWall.length_wall; i++){
+                        int id = upgrade_multiWall.listWall.get(i);
+                        Building building = mapInfo.listBuilding.get(id);
+                        userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);
+                        mapInfo.upgradeBuilding(id);
+                    }
+                                           
+                    userInfo.saveModel(user.getId());
+                    mapInfo.saveModel(user.getId());
+                    logger.info(">>>>>>>>>>>>>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA>>>>>>>");
+                    //mapInfo.print();
+                    
+                    send(new ResponseUpgradeMultiWall(ServerConstant.SUCCESS), user);
+                }
             }
             else {
-                for (int i=0; i< upgrade_multiWall.length_wall; i++){
-                    int id = upgrade_multiWall.listWall.get(i);
-                    Building building = mapInfo.listBuilding.get(id);
-                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);
-                    mapInfo.upgradeBuilding(id);
-                }
-                                       
-                userInfo.saveModel(user.getId());
-                mapInfo.saveModel(user.getId());
-                logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
-                //mapInfo.print();
-                send(new ResponseUpgradeMultiWall(ServerConstant.SUCCESS), user);
+                send(new ResponseUpgradeMultiWall(ServerConstant.ERROR), user);
+                return;
             }
             
         } catch (Exception e){
-            
+            send(new ResponseUpgradeMultiWall(ServerConstant.ERROR), user);
+            return;
         }
         
         

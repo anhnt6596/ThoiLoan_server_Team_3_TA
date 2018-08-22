@@ -11,10 +11,10 @@ import java.nio.ByteBuffer;
 import model.MapInfo;
 
 
-public class ResponseUpgradeMultiWall extends BaseMsg {
+public class ResponseMoveMultiWall extends BaseMsg {
     short validate ;
-    public ResponseUpgradeMultiWall(short s) {
-        super(CmdDefine.UPGRADE_MULTI_WALL);
+    public ResponseMoveMultiWall(short s) {
+        super(CmdDefine.MOVE_MULTI_WALL);
         this.validate = s;
     }
 
@@ -23,8 +23,7 @@ public class ResponseUpgradeMultiWall extends BaseMsg {
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
         
-        bf.putShort(this.validate);
-        System.out.println("UPGRADE_MULTI_WALL, validate = "+ this.validate);
+        bf.putShort(validate);
         return packBuffer(bf);
     }
 }
