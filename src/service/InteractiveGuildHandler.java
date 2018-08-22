@@ -16,7 +16,13 @@ import cmd.send.guild.ResponseGetInteractionGuild;
 import cmd.send.guild.ResponseGiveTroop;
 import cmd.send.guild.ResponseSendNewMessage;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+
+import java.util.List;
+
+import java.util.Map;
 
 import model.Guild;
 import model.GuildBuilding;
@@ -191,11 +197,22 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                return;
             }
             
-//            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
             Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             
-//            send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message), user);
-            send(new ResponseGetInteractionGuild(null, guild.list_message), user);
+            Map <Integer, Short> listMemberOnline = new HashMap <Integer, Short>();
+            User otherUser;
+            for (Integer idUser : guild.list_member.keySet()) {
+                otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
+                if(otherUser != null){
+                    listMemberOnline.put(idUser, ServerConstant.ONLINE);
+                }else{
+                    listMemberOnline.put(idUser, ServerConstant.OFFLINE);                    
+                }
+            }
+            
+            send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message, listMemberOnline), user);
+//            send(new ResponseGetInteractionGuild(null, guild.list_message), user);
 
         }catch (Exception e) {
             System.out.println(e);
