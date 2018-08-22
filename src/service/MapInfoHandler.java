@@ -13,6 +13,7 @@ import cmd.obj.map.MapArray;
 
 import cmd.obj.map.Obs;
 
+import cmd.receive.map.RequestMoveMultiWall;
 import cmd.receive.harvest.RequestDoHarvest;
 import cmd.receive.harvest.RequestGetHarvestInfo;
 import cmd.receive.map.RequestUpgradeConstruction;
@@ -26,9 +27,12 @@ import cmd.receive.map.RequestMapInfo;
 
 import cmd.receive.map.RequestMoveConstruction;
 
+import cmd.receive.map.RequestMoveMultiWall;
 import cmd.receive.map.RequestQuickFinish;
 
 import cmd.receive.map.RequestRemoveObs;
+
+import cmd.receive.map.RequestUpgradeMultiWall;
 
 import cmd.send.demo.ResponseRequestAddConstruction;
 import cmd.send.demo.ResponseRequestCancleConstruction;
@@ -41,6 +45,7 @@ import cmd.send.demo.ResponseRequestServerTime;
 import cmd.send.demo.ResponseRequestUpgradeConstruction;
 import cmd.send.demo.ResponseRequestUserInfo;
 
+import cmd.send.demo.ResponseUpgradeMultiWall;
 import cmd.send.harvest.ResponseDoHarvest;
 import cmd.send.train.ResponseRequestBarrackQueueInfo;
 
@@ -53,6 +58,7 @@ import java.util.Map;
 import model.Building;
 import model.GuildBuilding;
 import model.MapInfo;
+import model.Wall;
 import model.ZPUserInfo;
 
 import model.train.BarrackQueue;
@@ -100,7 +106,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                     System.out.println("Receive MOVE REQUEST");
                     RequestMoveConstruction move_construction = new RequestMoveConstruction(dataCmd);
                     processMoveConstruction(user,move_construction);
-                    break;
+                    break;                
                 case CmdDefine.ADD_CONSTRUCTION:
                     System.out.println("Receive MAP REQUEST");
                     RequestAddConstruction add_construction = new RequestAddConstruction(dataCmd);
@@ -147,6 +153,14 @@ MapInfoHandler extends BaseClientRequestHandler {
                         RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
                         processDoHarvest(user, do_harvest);
                         break;
+                case CmdDefine.MOVE_MULTI_WALL:                    
+                    RequestMoveMultiWall move_multiWall = new RequestMoveMultiWall(dataCmd);
+                    processMoveMultiWall(user,move_multiWall);
+                    break;
+                case CmdDefine.UPGRADE_MULTI_WALL :                    
+                    RequestUpgradeMultiWall upgrade_multiWall = new RequestUpgradeMultiWall(dataCmd);
+                    processUpgradeMultiWall(user,upgrade_multiWall);
+                    break;
             }
         } catch (Exception e) {
             logger.warn("DEMO HANDLER EXCEPTION " + e.getMessage());
@@ -1197,5 +1211,266 @@ MapInfoHandler extends BaseClientRequestHandler {
             }
             
         }
+
+    private void processMoveMultiWall(User user, RequestMoveMultiWall move_multiWall) {
+        logger.info("*****************processMoveMultiWall***************" );        
+        for (int i=0; i< move_multiWall.length_wall; i++){
+            Wall wall = move_multiWall.listWall.get(i);
+            processMoveWall(user, wall.id, wall.posX, wall.posY);
+        }
+        
+    }
+    private void processMoveWall(User user, int id, int posX, int posY) {
+        
+        try {
+            
+            MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {
+                //send response error
+            }
+            logger_move.debug("Map Info truoc khi move");
+            //mapInfo.print();
+            Building building = mapInfo.listBuilding.get(id);
+//            if (building.type.equals("CLC_1") && building.level==0){
+//                    logger.debug("Nha Bang hoi chua duoc xay dung, khong the di chuyen!");
+//                    send(new ResponseRequestMoveConstruction(ServerConstant.ERROR), user);
+//                    return;
+//                }
+            MapArray mapArray = new MapArray();
+            mapArray = mapInfo.getMapArray();
+            //System.out.println("VI TRI CU="+mapInfo.listBuilding.get(move_construction.id).posX+" "+mapInfo.listBuilding.get(move_construction.id).posY);
+            boolean check = mapArray.moveBuilding(mapInfo, id, posX, posY);
+            //mapInfo.saveModel(user.getId());
+            if (check){
+                //System.out.println("new positionnnnn = "+ mapInfo.listBuilding.toString() );
+                System.out.println("VI TRI MOI="+mapInfo.listBuilding.get(id).posX+" "+mapInfo.listBuilding.get(id).posY);
+                mapInfo.saveModel(user.getId());
+                //send(new ResponseRequestMoveConstruction(ServerConstant.SUCCESS), user);
+            }
+            else{
+                System.out.println("new positionnnnn = FALSE"  );
+                //mapInfo.saveModel(user.getId());
+                //send(new ResponseRequestMoveConstruction(ServerConstant.ERROR), user);
+            }
+                
+                   
+               } catch (Exception e) {
+            }
+    }
+
+    private void processUpgradeMultiWall(User user, RequestUpgradeMultiWall upgrade_multiWall) {
+        logger.info("*****************processUpgradeMultiWall***************" );
+        //processUpgradeWall(user, id);
+        int exchange_resource = 0;
+        int coin = 0;
+        int gold = 0;
+        int elixir = 0;
+        int darkElixir = 0;
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            //*------------------------------------------------
+            MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {               
+               //send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            for (int i=0; i< upgrade_multiWall.length_wall; i++){
+                int id = upgrade_multiWall.listWall.get(i);
+                Building building = mapInfo.listBuilding.get(id);
+                if (building.type.equals("BDH_1") || building.status.equals(ServerConstant.destroy_status)){
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                        return;
+                    }
+                
+                exchange_resource = exchange_resource + checkResource(userInfo,(building.type),building.level+1);
+                coin = coin + getCoin(building.type,building.level+1);
+                gold = gold + getGold(building.type,building.level+1);
+                elixir = elixir + getElixir(building.type,building.level+1);
+                darkElixir = darkElixir + getDarkElixir(building.type,building.level+1);
+            }
+            
+            if ((exchange_resource+coin<userInfo.coin)){ 
+                System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
+                // kiem tra tho xay                
+                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){
+                    System.out.println("CAN GIAI PHONG THO XAY");
+                    //get resource cua nha                    
+                    int g_release = mapInfo.getGToReleaseBuilder();
+                    System.out.println("So G de giai phong la "+ g_release);
+                    if (userInfo.coin < coin+exchange_resource+g_release ){ //neu khong du tien mua tho xay
+                        //linhrafa --Neu false
+                        //tra ve false
+                        send(new ResponseUpgradeMultiWall(ServerConstant.ERROR), user);
+                        return;
+                    }
+                    else {
+                        //giai phong 1 ngoi nha pending
+                        
+                        mapInfo.releaseBuilding(user); 
+                        
+                        mapInfo.print();
+                        for (int i=0; i< upgrade_multiWall.length_wall; i++){
+                            int id = upgrade_multiWall.listWall.get(i);
+                            Building building = mapInfo.listBuilding.get(id);
+                            userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin+g_release, building.type, false);
+                            mapInfo.upgradeBuilding(id);
+                        }
+                                               
+                        userInfo.saveModel(user.getId());
+                        mapInfo.saveModel(user.getId());
+                        logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                        //mapInfo.print();
+                        send(new ResponseUpgradeMultiWall(ServerConstant.SUCCESS), user);
+                    }                    
+                }
+            }
+            else {
+                for (int i=0; i< upgrade_multiWall.length_wall; i++){
+                    int id = upgrade_multiWall.listWall.get(i);
+                    Building building = mapInfo.listBuilding.get(id);
+                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);
+                    mapInfo.upgradeBuilding(id);
+                }
+                                       
+                userInfo.saveModel(user.getId());
+                mapInfo.saveModel(user.getId());
+                logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                //mapInfo.print();
+                send(new ResponseUpgradeMultiWall(ServerConstant.SUCCESS), user);
+            }
+            
+        } catch (Exception e){
+            
+        }
+        
+        
+        
+    }
+    private void processUpgradeWall(User user, int id) {
+        
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            //*------------------------------------------------
+            MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {               
+               //send response error
+               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+               return;
+            }
+            Building building = mapInfo.listBuilding.get(id);
+            if (building.type.equals("BDH_1") || building.status.equals(ServerConstant.destroy_status)){
+                    send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                    return;
+                }
+            //*------------------------------------------------
+    //            logger.info(">>>>>>>>>>>>>in ra truoc khi upgrade>>>>>>>");
+    //            mapInfo.print();
+        //neu la nha Resource thi thu hoac truoc
+            if (building.type.equals("RES_1") || building.type.equals("RES_2") || building.type.equals("RES_3")){
+                doHarvest(user,building.id);
+            }
+            
+        int exchange_resource = 0;
+        exchange_resource = checkResource(userInfo,(building.type),building.level+1);
+            
+        System.out.println("check_resource chuyen doi to upgrade building= " + exchange_resource );
+        int coin = getCoin(building.type,building.level+1);
+
+        if ((exchange_resource+coin<userInfo.coin)){ 
+                //add building to pending
+                int gold = getGold(building.type,building.level+1);
+                int elixir = getElixir(building.type,building.level+1);
+                int darkElixir = getDarkElixir(building.type,building.level+1);
+                
+                mapInfo.print();
+                
+                System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
+                
+                // kiem tra tho xay
+                //                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
+                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
+                    
+                    System.out.println("CAN GIAI PHONG THO XAY");
+                    
+                    //get resource cua nha
+                    
+                    int g_release = mapInfo.getGToReleaseBuilder();
+                    System.out.println("So G de giai phong la "+ g_release);
+    //                    check_resource = check_resource +g;
+                    if (userInfo.coin < coin+exchange_resource+g_release ){ //neu khong du tien mua tho xay
+                        //linhrafa --Neu false
+                        //tra ve false
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+                        return;
+                    }
+                    else {
+                        //giai phong 1 ngoi nha pending
+                        
+                        mapInfo.releaseBuilding(user); 
+                        
+                        mapInfo.print();
+                        
+                        userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin+g_release, building.type, false);
+                        mapInfo.upgradeBuilding(id);
+                        
+                        if (building.type.equals("CLC_1") && building.level ==0){
+                                GuildBuilding guildBuilding = new GuildBuilding();
+                                guildBuilding.saveModel(user.getId());
+                        }
+                        
+                        userInfo.saveModel(user.getId());
+                        mapInfo.saveModel(user.getId());
+                        logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                        //mapInfo.print();
+                        send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
+                    }
+                } 
+                else { //neu da du tho xay
+                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);                    
+                    mapInfo.upgradeBuilding(id);
+                    
+                    if (building.type.equals("CLC_1") && building.level ==0){
+                            GuildBuilding guildBuilding = new GuildBuilding();
+                            guildBuilding.saveModel(user.getId());
+                    }
+                        
+                    userInfo.saveModel(user.getId());
+                    mapInfo.saveModel(user.getId());
+                    logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
+                    mapInfo.print();
+                    send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
+                }
+            
+            }
+        else {
+            //linhrafa --Neu false
+            //tra ve false
+            send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
+            return;
+        }
+            
+        //Dat lai startTime cho Barrack
+        if(building.type.equals("BAR_1")){
+            System.out.println("==============================START UPGRADE BAR_1===========================");
+            this.changeBarrackQueueInfoWhenBarrackStartUpgrade(user, building.id);
+        }
+            
+            
+        } catch (Exception e) {
+        }
+    
+        
+    }
 }
 
