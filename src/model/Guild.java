@@ -85,6 +85,10 @@ public class Guild extends DataModel implements Comparable<Guild> {
     
     public void addMessage(MessageGuild message){
         //Neu la type ask troop thi xoa tin nhan ask troop trc do neu co
+        
+        System.out.println("XU LY NEW MESSAGE");
+
+        
         if(message.type == ServerConstant.ASK_TROOP){
             removeOldMessageWhenGetNewMessageRequestTroop(message.id_user);
             updateLastAskTroopTimeStamp(message.id_user);

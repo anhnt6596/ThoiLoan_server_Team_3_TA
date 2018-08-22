@@ -54,6 +54,7 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                     processRequestGetInteractionGuild(user, guildMessage);
                     break;
                 case CmdDefine.NEW_MESSAGE:
+                    System.out.println("NHAN REQUEST NEW MESSAGE");
                     RequestSendNewMessage messagePacket = new RequestSendNewMessage(dataCmd);
                     processRequestNewMessage(user, messagePacket);
                     break;
@@ -71,10 +72,12 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
     
     private void processRequestNewMessage(User user, RequestSendNewMessage packet) {
         try {
+            System.out.println("================== HERE 0 ===============");
+            
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
             if (userInfo == null) {
                //send response error
-               send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.ERROR, null), user);
+               send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.ERROR, null, null), user);
                return;
             }
             
@@ -83,18 +86,32 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             int idGuild = userInfo.id_guild;
             Guild guild = (Guild) Guild.getModel(idGuild, Guild.class);
             
+            System.out.println("================== HERE 1 ===============");
+            
             guild.addMessage(message);
+            
+            System.out.println("================== HERE 2 ===============");
+
             //Xac nhan add message
-            send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.SUCCESS, null), user);
+            send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.SUCCESS, null, null), user);
+            
+            System.out.println("================== HERE 3 ===============");
+
             
             //Send to all members of guild that is online, except sender
+            String nameSender = userInfo.getName();
             User otherUser;
             for (Integer idUser : guild.list_member.keySet()) {
                 //Get user by id
                 if(idUser == user.getId()) continue;
                 otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
-                send(new ResponseSendNewMessage(ServerConstant.TO_ALL, (short) 0, message), otherUser);
+                if(otherUser != null){
+                    send(new ResponseSendNewMessage(ServerConstant.TO_ALL, (short) 0, message, nameSender), otherUser);                    
+                }
             }
+            
+            System.out.println("================== HERE 4 ===============");
+
             
             guild.saveModel(idGuild);
             
@@ -174,11 +191,12 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                return;
             }
             
-            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+//            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
             Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             
-            send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message), user);
-            
+//            send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message), user);
+            send(new ResponseGetInteractionGuild(null, guild.list_message), user);
+
         }catch (Exception e) {
             System.out.println(e);
         }

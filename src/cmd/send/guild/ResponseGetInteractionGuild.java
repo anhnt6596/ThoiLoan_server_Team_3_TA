@@ -29,18 +29,18 @@ public class ResponseGetInteractionGuild extends BaseMsg {
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-        bf.putLong(guildBuilding.lastRequestTroopTimeStamp);
-        
-        int sizeTroopGuildList = guildBuilding.troopGuildList.size();
-        bf.putInt(sizeTroopGuildList);
-        
-        TroopGuild troop;
-        Iterator<TroopGuild> i = guildBuilding.troopGuildList.iterator();
-        while (i.hasNext()) {
-            troop = i.next();
-            putStr(bf, troop.name);
-            bf.putShort(troop.level);
-        }
+//        bf.putLong(guildBuilding.lastRequestTroopTimeStamp);
+//        
+//        int sizeTroopGuildList = guildBuilding.troopGuildList.size();
+//        bf.putInt(sizeTroopGuildList);
+//        
+//        TroopGuild troop;
+//        Iterator<TroopGuild> i = guildBuilding.troopGuildList.iterator();
+//        while (i.hasNext()) {
+//            troop = i.next();
+//            putStr(bf, troop.name);
+//            bf.putShort(troop.level);
+//        }
         
         int sizeMessageList = list_message.size();
         bf.putInt(sizeMessageList);

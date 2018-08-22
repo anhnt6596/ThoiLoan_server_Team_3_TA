@@ -18,14 +18,15 @@ public class ResponseSendNewMessage extends BaseMsg {
     public short typeResponse;                      //validate or toAll
     public short validateValue;
     public MessageGuild messageGuild;
-    public String username;
+    public String nameSender;
     
-    public ResponseSendNewMessage(short _typeResponse, short _validateValue, MessageGuild _messageGuild) {
+    public ResponseSendNewMessage(short _typeResponse, short _validateValue, MessageGuild _messageGuild, String _nameSender) {
         super(CmdDefine.NEW_MESSAGE);
         typeResponse = _typeResponse;
         validateValue = _validateValue;
         messageGuild = _messageGuild;
-        username = BitZeroServer.getInstance().getUserManager().getUserById(messageGuild.id_user).getName();
+        nameSender = _nameSender;
+       
     }
     
     
@@ -39,7 +40,7 @@ public class ResponseSendNewMessage extends BaseMsg {
         }else if(typeResponse == ServerConstant.TO_ALL){
             bf.putShort(messageGuild.type);
             bf.putInt(messageGuild.id_user);
-            putStr(bf, username);
+            putStr(bf, nameSender);
             putStr(bf, messageGuild.content);
         }
         return packBuffer(bf);
