@@ -9,6 +9,8 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import java.util.List;
+
 import model.GuildBuilding;
 import model.MessageGuild;
 import model.TroopGuild;
@@ -16,9 +18,9 @@ import model.TroopGuild;
 
 public class ResponseGetInteractionGuild extends BaseMsg {
     GuildBuilding guildBuilding;
-    LinkedList<MessageGuild> list_message;
+    List<MessageGuild> list_message;
     
-    public ResponseGetInteractionGuild(GuildBuilding _guildBuilding, LinkedList<MessageGuild> _list_message) {
+    public ResponseGetInteractionGuild(GuildBuilding _guildBuilding, List<MessageGuild> _list_message) {
         super(CmdDefine.GET_INTERACTION_GUILD);
         guildBuilding = _guildBuilding;
         list_message = _list_message;

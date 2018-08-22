@@ -106,14 +106,13 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
             if(barrackQueueInfo == null){
                 System.out.println("======================= BarrackQueueInfo null ======================");
-                barrackQueueInfo = new BarrackQueueInfo();  
+                barrackQueueInfo = new BarrackQueueInfo();
             }else {
-                checkFirst(barrackQueueInfo, user);
+//                checkFirst(barrackQueueInfo, user);
+                checkFirstTest(barrackQueueInfo, user);
             }
             barrackQueueInfo.saveModel(user.getId());
-            send(new ResponseRequestBarrackQueueInfo(barrackQueueInfo), user);
-            
-            
+            send(new ResponseRequestBarrackQueueInfo(barrackQueueInfo), user); 
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -318,7 +317,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
             if (userInfo == null) {
                //send response error
-               send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR), user);
+               send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                return;
             }
             
@@ -326,7 +325,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             if(barrackQueueInfo == null){
                 System.out.println("======================= BarrackQueueInfo null ======================");
                 //send response error
-                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR), user);
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                 return;
             }
             
@@ -334,7 +333,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             if(barrackQueue == null){
                 System.out.println("======================= BarrackQueue null ======================");
                 //send response error
-                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR), user);
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                 return;
             }
             
@@ -367,7 +366,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
                 if (troopInfo == null) {
                     //send response error
-                    send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR), user);
+                    send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                     return;
                 }
                 Troop troopObj = troopInfo.troopMap.get(packet.typeTroop);
@@ -401,7 +400,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             barrackQueue.troopListMap.put(packet.typeTroop, troop);
             barrackQueueInfo.barrackQueueMap.put(packet.idBarrack, barrackQueue);
             barrackQueueInfo.saveModel(user.getId());
-            send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.SUCCESS), user);    
+            send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.SUCCESS, packet.idBarrack, packet.typeTroop), user);    
           
         } catch (Exception e) {
             System.out.println(e);
@@ -573,7 +572,10 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                         increaseAmountTroop(user, troopInBarrack.name, (int) amountTrainedTroop);
                         troopInBarrack.amount -= amountTrainedTroop;
                         barrackQueue.totalTroopCapacity -= amountTrainedTroop * troopInBarrack.housingSpace;
-                        barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.trainingTime);
+                        barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.trainingTime * 1000);
+                        break;
+                    }else{
+                        System.out.println("============================================ amountTrainedTroop < 1");
                         break;
                     }
                     i++;
@@ -584,53 +586,165 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
     
     
     public void checkFirstTest(BarrackQueueInfo barrackQueueInfo, User user) {
+        boolean isCheck = false;
+        BarrackQueue barrackQueue;     
+        for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueInfo.barrackQueueMap.get(idBarrack);
+            if(barrackQueue.startTime != 0){
+                isCheck = true;
+            }
+        }
+        
+        if(isCheck == false) {
+            System.out.println("============================================ KHONG CO GI DE CHECK ============== ");
+            return;
+        }
+        
         //Cap nhat capacity AMCs
         int totalAMCsCapacity = getTotalCapacityAMCs(user);
-        
+        System.out.println("============================================ totalAMCsCapacity = " + totalAMCsCapacity);
         //So linh tinh tu luc off
         int troopCapacityBefore = getCurrentCapacityTroop(user);
-        
+        System.out.println("============================================ troopCapacityBefore = " + troopCapacityBefore);
         //So capacity linh toi da co the train
         int troopAvai = totalAMCsCapacity - troopCapacityBefore;
-        
+        System.out.println("============================================ troop Avai = " + troopAvai);   
         
         //Thoi diem offline
-        long timeOff = barrackQueueInfo.getMaxStartTime();
+        long timeOff = barrackQueueInfo.getMinStartTime();
+        System.out.println("============================================ timeOff = " + timeOff);
         if(timeOff == 0) return;
         long currentTime = System.currentTimeMillis();
         
-        long timeAvai = 2700 * 3 + 600 * 1;                  //25x3 + 10x1 = 85 (max queue length barrack level 12)
+        long timeAvai = (2700 * 3 + 600 * 1) * 1000;                  //25x3 + 10x1 = 85 (max queue length barrack level 12)
+        System.out.println("============================================ timeAvai = " + timeAvai);
         long deltaTime = currentTime - timeOff;
-        if(deltaTime / 1000 > timeAvai) deltaTime = timeAvai;
+        if(deltaTime > timeAvai) deltaTime = timeAvai * 1000;
+        System.out.println("============================================ deltaTime = " + deltaTime);
+
+        int temp = barrackQueueInfo.getAmountTroopCapacityCanBeTrained(deltaTime);
         
-        int temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
         if(temp <= troopAvai){
-            //OK
-            //Goi ham thay doi so luong linh voi deltaTime nay
-            //return
+            System.out.println("============================================ temp 1 return = " + temp);
+            //OK, Goi ham thay doi so luong linh voi deltaTime nay
+            this.finishCheckBarrack(barrackQueueInfo, user, deltaTime);
+            return;
         }
 
+        int j = 10;
         while(temp > troopAvai && deltaTime > 0){
             deltaTime /= 2;
-            temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
+            temp = barrackQueueInfo.getAmountTroopCapacityCanBeTrained(deltaTime);
+            System.out.println("============================================ temp " + j + ": " + temp);
+            j++;
+        }
+        System.out.println("============================================ temp 2 = " + temp);
+        
+        if(deltaTime <= 0){
+            System.out.println("============================================ tem 3 return = " + temp);
+            //OK, Goi ham thay doi so luong linh voi deltaTime nay
+            this.finishCheckBarrack(barrackQueueInfo, user, deltaTime);
+            return;
         }
         
         //Voi deltaTime luc nay, temp <= troopAvai
-        
         int i = 1;
-        while(deltaTime > 0){
+        long tempTime = deltaTime;
+        while(tempTime > 1){
             if(temp <= troopAvai){
-                deltaTime = deltaTime + deltaTime / 2;
+                tempTime /= 2;
+                deltaTime += tempTime / 2;
             }else{
-                deltaTime /= 2;
+                tempTime /= 2;
+                deltaTime -= tempTime / 2;
             }
-            temp = amountTroopCapacityCanBeTrained(barrackQueueInfo, deltaTime);
+            temp = barrackQueueInfo.getAmountTroopCapacityCanBeTrained(deltaTime);
             i++;
         }
         
         //Luc nay, deltaTime da ok
-            
+        System.out.println("============================================ tem final return = " + temp);
+        this.finishCheckBarrack(barrackQueueInfo, user, deltaTime);
+        return;
     }
+    
+    
+    private void finishCheckBarrack(BarrackQueueInfo barrackQueueInfo, User user, long _deltaTime) {
+        BarrackQueue barrackQueue;
+        long deltaTime;
+        for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = barrackQueueInfo.barrackQueueMap.get(idBarrack);
+            if(barrackQueue.startTime == 0){
+                continue;
+            }
+            
+            deltaTime = _deltaTime - (barrackQueue.startTime - barrackQueueInfo.getMinStartTime());
+            
+            //Neu trc currentTroop >= AMCs capacity thi khong can kiem tra
+            
+            
+            //Cap nhat capacity AMCs
+            int totalAMCsCapacity = getTotalCapacityAMCs(user);
+            //So linh tinh tu luc off
+            int troopCapacityBefore = getCurrentCapacityTroop(user);
+            
+            if(totalAMCsCapacity - troopCapacityBefore <= 0){
+                System.out.println("================================= Dang max capacity, khong the check finish time");
+                return;
+            }
+            
+            //troopList
+            if(barrackQueue.amountItemInQueue > 0 && barrackQueue.totalTroopCapacity > 0){
+                long amountTrainedTroop = 0;
+                TroopInBarrack troopInBarrack;
+                int i = 1;
+                while(true){
+                    System.out.println("============================================ Lan while thu: " + i);
+                    try {
+                        troopInBarrack = barrackQueue.getTroopByPosition(0);
+                    } catch (Exception e) {
+                        System.out.println("============================================ Loi o day " + e);
+                        return;
+                    }
+                    
+                    amountTrainedTroop = deltaTime / (troopInBarrack.trainingTime * 1000);
+                    System.out.println("============================================ Amount Trained Troops: " + amountTrainedTroop);
+                    if(amountTrainedTroop >= troopInBarrack.amount){
+                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
+                        barrackQueue.updateQueue(troopInBarrack.currentPosition);
+                        troopInBarrack.currentPosition = -1;
+                        //Tang so luong linh cua troop do
+                        increaseAmountTroop(user, troopInBarrack.name, troopInBarrack.amount);
+                         
+                        barrackQueue.amountItemInQueue--;
+                        barrackQueue.totalTroopCapacity -= troopInBarrack.amount * troopInBarrack.housingSpace;
+                        
+                        troopInBarrack.amount = 0;
+                        if(barrackQueue.amountItemInQueue == 0){
+                            barrackQueue.startTime = 0;
+                            break;
+                        }
+                        deltaTime -=  amountTrainedTroop * troopInBarrack.trainingTime * 1000;
+                        if(deltaTime == 0){
+                            break;
+                        }                    
+                    }else if(amountTrainedTroop >= 1){
+                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
+                        increaseAmountTroop(user, troopInBarrack.name, (int) amountTrainedTroop);
+                        troopInBarrack.amount -= amountTrainedTroop;
+                        barrackQueue.totalTroopCapacity -= amountTrainedTroop * troopInBarrack.housingSpace;
+                        barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.trainingTime * 1000);
+                        break;
+                    }else{
+                        break;
+                    }
+                    i++;
+                }
+            } 
+        }
+    }
+    
+    
     
     //So unit capacity linh co the train trong khoang tgian deltaTime, k bi rang buoc boi AMCs capacity
     private int amountTroopCapacityCanBeTrained(BarrackQueueInfo barrackQueueInfo, long _deltaTime) {
@@ -649,30 +763,30 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 TroopInBarrack troopInBarrack;
                 int i = 1;
                 while(true){
-                    System.out.println("============================================ Lan while thu: " + i);
+//                    System.out.println("============================================ Lan while thu: " + i);
                     try {
                         troopInBarrack = barrackQueue.getTroopByPosition(0);
                     } catch (Exception e) {
-                        System.out.println("============================================ Loi o day " + e);
+//                        System.out.println("============================================ Loi o day " + e);
                         return 0;
                     }
                     
-                    amountTrainedTroop = deltaTime / troopInBarrack.trainingTime;
+                    amountTrainedTroop = deltaTime / (troopInBarrack.trainingTime * 1000);
                     if(amountTrainedTroop >= troopInBarrack.amount){
-                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
+//                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
                         barrackQueue.updateQueue(troopInBarrack.currentPosition);
                         totalCapacity += troopInBarrack.amount * troopInBarrack.housingSpace;
-                         
+                        
                         barrackQueue.amountItemInQueue--;
                         if(barrackQueue.amountItemInQueue == 0){
                             break;
                         }
-                        deltaTime -=  amountTrainedTroop * troopInBarrack.trainingTime;
+                        deltaTime -=  amountTrainedTroop * (troopInBarrack.trainingTime * 1000);
                         if(deltaTime == 0){
                             break;
                         }    
                     }else if(amountTrainedTroop >= 1){
-                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
+//                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
                         totalCapacity += amountTrainedTroop * troopInBarrack.housingSpace;
                         break;
                     }
@@ -767,6 +881,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         try {
             mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
         } catch (Exception e) {
+            System.out.println("=============== KHONG GET DC MAP INFO =================");
             return 0;
         }
         
@@ -774,6 +889,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         try {
             amcConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
         } catch (JSONException e) {
+            System.out.println("=============== KHONG GET DC ARMY CONFIG =================");
             return 0;
         }
 
@@ -783,12 +899,13 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
         Iterator<Building> i = listBuilding.iterator();
         while (i.hasNext()) {
             Building build = i.next();
-            
-            if((build.status == "complete" || build.status == "upgrade") && (build.type == "AMC_1")){
+
+            if((build.status.equals("complete") || build.status.equals("upgrade")) && (build.type.equals("AMC_1"))){
                 int capacity;
 
                 try {
                     capacity = amcConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
+                    System.out.println("=============== capacity:  " + capacity);
                 } catch (JSONException e) {
                     return 0;
                 }
