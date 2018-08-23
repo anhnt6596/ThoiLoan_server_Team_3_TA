@@ -12,14 +12,14 @@ public class ResponseGiveTroop extends BaseMsg {
     public short typeResponse;                      //validate or toAll
     public short validateValue;
     public int idUserGet;
-    public short capacityGet;
+    String troopType;
     
-    public ResponseGiveTroop(short _typeResponse, short _validateValue, int _idUserGet, short _capacityGet) {
+    public ResponseGiveTroop(short _typeResponse, short _validateValue, int _idUserGet, String _troopType) {
         super(CmdDefine.GIVE_TROOP_GUILD);
         typeResponse = _typeResponse;
         validateValue = _validateValue;
         idUserGet = _idUserGet;
-        capacityGet = _capacityGet;
+        troopType = _troopType;
     }
     
     @Override
@@ -31,7 +31,7 @@ public class ResponseGiveTroop extends BaseMsg {
             bf.putShort(validateValue);
         }else if(typeResponse == ServerConstant.TO_ALL){
             bf.putInt(idUserGet);
-            bf.putShort(capacityGet);
+            putStr(bf, troopType);
         }
         return packBuffer(bf);
     }

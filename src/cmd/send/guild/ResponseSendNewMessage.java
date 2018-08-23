@@ -42,6 +42,8 @@ public class ResponseSendNewMessage extends BaseMsg {
             bf.putInt(messageGuild.id_user);
             putStr(bf, nameSender);
             putStr(bf, messageGuild.content);
+            bf.putInt(messageGuild.currentCapacityTroop);
+            bf.putInt(messageGuild.guildCapacityAtTime);
         }
         return packBuffer(bf);
     }

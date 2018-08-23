@@ -35,6 +35,8 @@ public class GuildBuilding extends DataModel {
            return 0;
         }
         int level = mapInfo.listBuilding.get(ServerConstant.ID_CLC_BUILDING).level;
+
+        String type = mapInfo.listBuilding.get(ServerConstant.ID_CLC_BUILDING).type;
         
         JSONObject guildConfig;
         try {

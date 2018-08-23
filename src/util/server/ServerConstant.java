@@ -77,7 +77,7 @@ public class ServerConstant {
     public static final int MAX_MESSAGES_QUEUE = 100;
     public static final int MAX_TROOP_AMOUNT_USER_CAN_GIVE = 5;
     public static final int TIME_REQUEST_TROOP = 1200;              //second
-    public static final int ID_CLC_BUILDING = 4;              //second
+    public static final int ID_CLC_BUILDING = 0;              //second
     public static final short ONLINE = 1;
     public static final short OFFLINE = 2;
 

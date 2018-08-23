@@ -60,6 +60,8 @@ public class ResponseGetInteractionGuild extends BaseMsg {
             putStr(bf, "Fresher_" + Integer.toString(mess.id_user));
             putStr(bf, mess.content);
             bf.putLong(mess.timeStamp);
+            bf.putInt(mess.currentCapacityTroop);
+            bf.putInt(mess.guildCapacityAtTime);
         }
         
         int sizeMemberList = list_member_online.size();
