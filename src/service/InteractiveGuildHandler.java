@@ -27,8 +27,12 @@ import java.util.Map;
 import model.Guild;
 import model.GuildBuilding;
 import model.MessageGuild;
+import model.Troop;
 import model.TroopGuild;
+import model.TroopInfo;
 import model.ZPUserInfo;
+
+import model.train.TroopInBarrack;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -60,7 +64,6 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                     processRequestGetInteractionGuild(user, guildMessage);
                     break;
                 case CmdDefine.NEW_MESSAGE:
-                    System.out.println("NHAN REQUEST NEW MESSAGE");
                     RequestSendNewMessage messagePacket = new RequestSendNewMessage(dataCmd);
                     processRequestNewMessage(user, messagePacket);
                     break;
@@ -87,22 +90,26 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                return;
             }
             
-            MessageGuild message = new MessageGuild(packet.type, user.getId(), packet.content, System.currentTimeMillis());
+            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+            
+            //Lay guild Capacity tai thoi diem do
+            int guildCapacity = guildBuilding.getGuildCapacity(userInfo);
+            System.out.println("===================== GET GUILD CAPACITY: ====================== " + guildCapacity);
+            
+            //Lay currentTroopCapacity tai thoi diem do. Co the da ton tai troop trc do
+            int currentTroopCapacity = guildBuilding.getCurrentTroopCapacityGuild();
+            MessageGuild message = new MessageGuild(packet.type, user.getId(), packet.content, System.currentTimeMillis(), guildCapacity, currentTroopCapacity);
             
             int idGuild = userInfo.id_guild;
             Guild guild = (Guild) Guild.getModel(idGuild, Guild.class);
             
-            System.out.println("================== HERE 1 ===============");
             
             guild.addMessage(message);
             
-            System.out.println("================== HERE 2 ===============");
 
             //Xac nhan add message
             send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.SUCCESS, null, null), user);
             
-            System.out.println("================== HERE 3 ===============");
-
             
             //Send to all members of guild that is online, except sender
             String nameSender = userInfo.getName();
@@ -116,9 +123,6 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                 }
             }
             
-            System.out.println("================== HERE 4 ===============");
-
-            
             guild.saveModel(idGuild);
             
         } catch (Exception e) {
@@ -131,59 +135,79 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             //user nhan troop
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(packet.idUserGet, ZPUserInfo.class);
             if (userInfo == null) {
-               send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, (short) 0), user);
+               send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, null, 0, 0), user);
                return;
             }
+            GuildBuilding guildBuildingGetter = (GuildBuilding) GuildBuilding.getModel(packet.idUserGet, GuildBuilding.class);
             
-            GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(packet.idUserGet, GuildBuilding.class);
-            
-            //Check neu nhan them quan se vuot qua guildCapacity
-            int guildCapacity = guildBuilding.getGuildCapacity(userInfo);
-            int currentGuildCapacity = guildBuilding.getCurrentTroopCapacityGuild();
+            //Check neu userGet nhan them quan se vuot qua guildCapacity
+            int guildCapacity = guildBuildingGetter.getGuildCapacity(userInfo);
+            int currentGuildCapacity = guildBuildingGetter.getCurrentTroopCapacityGuild();
             int capacityTroopGive = getTroopCapacity(packet.troopType);
             if(currentGuildCapacity + capacityTroopGive > guildCapacity){
-                send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, (short) 0), user);
+                send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, null, 0, 0), user);
                 return;
             }
             
             //Check So quan ma giveUser da cho trc do
-            int amountGave = guildBuilding.userGaveMap.get(user.getId());
-            if ((Integer) amountGave != null) {
+            GuildBuilding guildBuildingGiver = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
+            Integer amountGave = guildBuildingGiver.userGotMap.get(packet.idUserGet);
+            if (amountGave != null) {
                 if(amountGave >= ServerConstant.MAX_TROOP_AMOUNT_USER_CAN_GIVE){
-                    send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, (short) 0), user);
+                    System.out.println("================== VUOT QUA 5 TROOP CHO PHEP ===============");
+                    send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, null, 0, 0), user);
                     return;
                 }
-                int newAmount = amountGave++;
-                guildBuilding.userGaveMap.put(user.getId(), newAmount);
+                System.out.println("================== HERE 1 ===============");
+                int newAmount = amountGave.intValue() + 1;
+                guildBuildingGiver.userGotMap.put(packet.idUserGet, newAmount);
             } else {
-                guildBuilding.userGaveMap.put(user.getId(), 1);
+                System.out.println("================== HERE 2 ===============");
+                guildBuildingGiver.userGotMap.put(packet.idUserGet, 1);
             }
+            
+            System.out.println("================== HERE 3 ===============");
+            //Giam population troop cua sender
+            this.decreaseAmountTroop(user.getId(), packet.troopType, 1);
+            
+            //Cap nhat troopList cho nguoi nhan
             TroopGuild troopGuild = new TroopGuild(packet.troopType, packet.level);
-            guildBuilding.troopGuildList.add(troopGuild);
+            guildBuildingGetter.troopGuildList.add(troopGuild);
             
-            //Xac nhan give troop cho sender
-            send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.SUCCESS, 0, (short) 0), user);
-            
-            //Send to all members of guild except sender
+            //Cap nhat lai message xin quan cua userGet
             int idGuild = userInfo.id_guild;
             Guild guild = (Guild) Guild.getModel(idGuild, Guild.class);
+            guild.updateRequestTroopMessage(packet.idUserGet, capacityTroopGive);
+            
+            //Send xac nhan give troop cho sender
+            send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.SUCCESS, 0, null, 0, 0), user);
+                
+            //Send to all members of guild except sender
             User otherUser;
             for (Integer idUser : guild.list_member.keySet()) {
                 //Get user by id
                 if(idUser == user.getId()) continue;
                 otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
-                int capacityTroop = getTroopCapacity(packet.troopType);
-                send(new ResponseGiveTroop(ServerConstant.TO_ALL, (short) 0, packet.idUserGet, (short) capacityTroop), otherUser);
+                if(otherUser != null){
+                    send(new ResponseGiveTroop(ServerConstant.TO_ALL, (short) 0, packet.idUserGet, packet.troopType, packet.level, user.getId()), otherUser);
+                }
             }
             
-            //Neu da full guildCapacity thi reset userGaveMap
-            int guildCapacity2 = guildBuilding.getGuildCapacity(userInfo);
-            int currentGuildCapacity2 = guildBuilding.getCurrentTroopCapacityGuild();
-            if(currentGuildCapacity2 >= guildCapacity2){
-                guildBuilding.resetUserGaveMap();
+            //Neu da full guildCapacity thi reset userGotMap cua tat ca ng trong bang va xoa message xin quan
+            if(currentGuildCapacity + capacityTroopGive == guildCapacity){
+                //Reset userGotMap cua all user trong bang
+                this.resetAllUserGotMapWhenFullRequestTroop(packet.idUserGet, guild);
+                
+                guild.removeMessageRequestTroop(packet.idUserGet);
             }
             
-            guildBuilding.saveModel(packet.idUserGet);
+            //Cap nhat so quan cho, so quan nhan cua moi nguoi
+            this.updateTransaction(user.getId(), packet.idUserGet);
+            
+            guild.saveModel(idGuild);
+            guildBuildingGetter.saveModel(packet.idUserGet);
+            guildBuildingGiver.saveModel(user.getId());
+
             
         } catch (Exception e) {
             System.out.println(e);
@@ -212,7 +236,6 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             }
             
             send(new ResponseGetInteractionGuild(guildBuilding, guild.list_message, listMemberOnline), user);
-//            send(new ResponseGetInteractionGuild(null, guild.list_message), user);
 
         }catch (Exception e) {
             System.out.println(e);
@@ -228,5 +251,66 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
             return 0;
         }
         return space;
+    }
+    
+    private void decreaseAmountTroop(int userId, String typeTroop, int amount) {
+        //Giam so luong loai troop nay
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(userId, TroopInfo.class);
+        } catch (Exception e) {
+            return;
+        }
+        
+        Troop troopObj = troopInfo.troopMap.get(typeTroop);
+        troopObj.population -= amount;
+        troopInfo.troopMap.put(typeTroop, troopObj);
+        try {
+            troopInfo.saveModel(userId);
+        } catch (Exception e) {
+        }
+    }
+    
+    private void resetAllUserGotMapWhenFullRequestTroop(int idUser, Guild guild) {
+        GuildBuilding guildBuilding;
+        for (Integer id : guild.list_member.keySet()) {
+            try {
+                guildBuilding = (GuildBuilding) GuildBuilding.getModel(id, GuildBuilding.class);
+            } catch (Exception e) {
+                return;
+            }
+            
+            Integer value = guildBuilding.userGotMap.get(idUser);
+            if (value != null) {
+                guildBuilding.userGotMap.put(idUser, 0);
+            }
+            try {
+                guildBuilding.saveModel(id);
+            } catch (Exception e) {
+            }
+        }   
+    }
+       
+    //cap nhat so luong give, so luong get cua 2 ng
+    private void updateTransaction(int idUserGive, int idUserGet) {
+        ZPUserInfo userGive;
+        ZPUserInfo userGet;
+        try{
+            userGive = (ZPUserInfo) ZPUserInfo.getModel(idUserGive, ZPUserInfo.class);
+            userGet = (ZPUserInfo) ZPUserInfo.getModel(idUserGet, ZPUserInfo.class);
+        }catch(Exception e){
+            return;
+        }
+        
+        System.out.println("================ So quan da donate: " + userGive.donate_troop);
+        
+        userGive.donate_troop += 1;
+        userGet.request_troop += 1;
+
+        try {
+            userGive.saveModel(idUserGive);
+            userGet.saveModel(idUserGet);
+        } catch (Exception e) {
+        }
     }
 }

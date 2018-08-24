@@ -17,8 +17,8 @@ import util.server.ServerConstant;
 public class GuildBuilding extends DataModel {
     public long lastRequestTroopTimeStamp = 0L;
     public List<TroopGuild> troopGuildList = new ArrayList<TroopGuild>();
-    //Danh sach cac user da cho linh: userId, amount
-    public Map <Integer, Integer> userGaveMap = new HashMap<Integer, Integer>();
+    //Danh sach cac user ma minh da cho linh: userId, amount
+    public Map <Integer, Integer> userGotMap = new HashMap<Integer, Integer>();
     
     public GuildBuilding() {
         super();
@@ -71,7 +71,7 @@ public class GuildBuilding extends DataModel {
         return total;
     }
     
-    public void resetUserGaveMap() {
-        userGaveMap.clear();
-    }
+//    public void resetUserGotMap() {
+//        userGotMap.clear();
+//    }
 }

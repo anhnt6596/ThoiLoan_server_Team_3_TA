@@ -50,6 +50,7 @@ import model.Building;
 import model.Guild;
 import model.ListGuild;
 import model.MapInfo;
+import model.MessageGuild;
 import model.ZPUserInfo;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -74,19 +75,19 @@ public class GuildHandle extends BaseClientRequestHandler {
     public void handleClientRequest(User user, DataCmd dataCmd) {
         try {
             switch (dataCmd.getId()) {
-                case CmdDefine.CREATE_GUILD:                        
+                case CmdDefine.CREATE_GUILD:    //1                      
                         RequestCreateGuild create_guild = new RequestCreateGuild(dataCmd);
                         processCreateGuild(user, create_guild);
                         break;
-                case CmdDefine.ADD_MEMBER:                        
+                case CmdDefine.ADD_MEMBER:                       
                         RequestAddMember member_add = new RequestAddMember(dataCmd);
                         processAddMember(user, member_add);
                         break;
-                case CmdDefine.REMOVE_MEMBER:                        
+                case CmdDefine.REMOVE_MEMBER:       //2                 
                         RequestRemoveMember member_remove = new RequestRemoveMember(dataCmd);
                         processRemoveMember(user, member_remove);
                         break;
-                case CmdDefine.ADD_REQUEST_MEMBER:                        
+                case CmdDefine.ADD_REQUEST_MEMBER:     //3                   
                         RequestAddRequestMember member_add_rq = new RequestAddRequestMember(dataCmd);
                         processAddRequestMember(user, member_add_rq);
                         break;                
@@ -106,11 +107,11 @@ public class GuildHandle extends BaseClientRequestHandler {
                         RequestGetGuildListMemberInfo get_guild_list_info = new RequestGetGuildListMemberInfo(dataCmd);
                         processGetGuildListMemberInfo(user, get_guild_list_info);
                         break;
-                case CmdDefine.EDIT_GUILD_INFO:                        
+                case CmdDefine.EDIT_GUILD_INFO:               //4         
                         RequestEditGuildInfo edit_guild_info = new RequestEditGuildInfo(dataCmd);
                         processEditGuildInfo(user, edit_guild_info);
                         break;
-                case CmdDefine.SET_GUILD_POSITION:                        
+                case CmdDefine.SET_GUILD_POSITION:             //5           
                         RequestSetGuildPosition guild_position = new RequestSetGuildPosition(dataCmd);
                         processSetGuildPosition(user, guild_position);
                         break;                
@@ -169,9 +170,14 @@ public class GuildHandle extends BaseClientRequestHandler {
             
             userInfo.addGuildInfo(guild.id, guild.name, guild.logo_id);
             
+            String content = userInfo.getName() + " has created this clan!";
+            MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+            guild.addMessage(mess);
+            
             userInfo.saveModel(user.getId());
             guild.saveModel(guild.id);
             send(new ResponseCreateGuild(ServerConstant.SUCCESS, guild), user);
+            
             
         } catch (Exception e) {
         }
@@ -284,6 +290,11 @@ public class GuildHandle extends BaseClientRequestHandler {
             }
             guild.removeMember(member_remove.id);
             logger.debug("member bi kick co id la = "+ member_remove.id);
+            
+            String content = userInfo.getName() + " has been removed " + memberRemoveInfo.getName();
+            MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+            guild.addMessage(mess);
+            
             guild.saveModel(guild.id);
             if (guild.list_member.size()==0){
                 System.out.println("Bang khong con ai");
@@ -355,12 +366,17 @@ public class GuildHandle extends BaseClientRequestHandler {
                     }
                 }
                 
+                String content = memberInfo.getName() + " has joined!";
+                MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+                guild.addMessage(mess);
+                
             }
             else {
                 logger.debug("Bang co trang thai la dong, khong the them thanh vien");
                 send(new ResponseAddRequestMember(ServerConstant.VALIDATE,memberInfo, ServerConstant.ERROR), user);
                 return;
             }
+            
             
             
             guild.saveModel(guild.id);
@@ -485,6 +501,10 @@ public class GuildHandle extends BaseClientRequestHandler {
             guild.setDanh_vong_require(edit_guild_info.require_danh_vong);
             guild.setDescription(edit_guild_info.description);
             
+            String content = "Clan description has changed!";
+            MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+            guild.addMessage(mess);
+            
             guild.saveModel(guild.id);
             send(new ResponseEditGuildInfo(ServerConstant.SUCCESS), user); 
             
@@ -556,6 +576,26 @@ public class GuildHandle extends BaseClientRequestHandler {
                     send (rsMember, Member);
                 }
             }
+            
+            ZPUserInfo userInfoPromote = (ZPUserInfo) ZPUserInfo.getModel(new_guild_position.id, ZPUserInfo.class);
+            String position;
+            switch (new_guild_position.type_position){
+                case 0:
+                    position = "Member";
+                    break;
+                case 1:
+                    position = "Moderator";
+                    break;
+                case 2:
+                    position = "Leader";
+                    break;
+                default:
+                    position = "Member";
+            }
+                                                    
+            String content = userInfoPromote.getName() + " becomes to " + position;
+            MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+            guild.addMessage(mess);
             
             guild.saveModel(guild.id);           
             

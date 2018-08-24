@@ -90,7 +90,7 @@ public class Guild extends DataModel implements Comparable<Guild> {
 
         
         if(message.type == ServerConstant.ASK_TROOP){
-            removeOldMessageWhenGetNewMessageRequestTroop(message.id_user);
+            removeMessageRequestTroop(message.id_user);
             updateLastAskTroopTimeStamp(message.id_user);
         }
         
@@ -101,8 +101,8 @@ public class Guild extends DataModel implements Comparable<Guild> {
         list_message.add(message);
     }
     
-    //Xoa message xin quan cu neu co request xin quan moi
-    private void removeOldMessageWhenGetNewMessageRequestTroop(int userId) {
+    //Xoa message xin quan cu neu co request xin quan moi hoac full quan
+    public void removeMessageRequestTroop(int userId) {
         MessageGuild mess;
         Iterator<MessageGuild> i = list_message.iterator();
         while (i.hasNext()) {
@@ -110,6 +110,23 @@ public class Guild extends DataModel implements Comparable<Guild> {
             if(mess.type == ServerConstant.ASK_TROOP && mess.id_user == userId){
                 int index = list_message.indexOf(mess);
                 list_message.remove(index);
+                break;
+            }
+        }         
+    }
+    
+    
+    
+    
+    //Cap nhat lai current troop capacity trong message xin quan
+    public void updateRequestTroopMessage(int userId, int increaseCapacity) {
+        MessageGuild mess;
+        Iterator<MessageGuild> i = list_message.iterator();
+        while (i.hasNext()) {
+            mess = i.next();
+            if(mess.type == ServerConstant.ASK_TROOP && mess.id_user == userId){
+                mess.currentCapacityTroop += increaseCapacity;
+                System.out.println("====================== DUYYYYYYYYYYYYYYYYYYYYYY increaseCapacity: " + mess.currentCapacityTroop);
                 break;
             }
         }         

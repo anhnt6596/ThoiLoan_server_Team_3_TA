@@ -26,14 +26,10 @@ public class ResponseAddRequestMember extends BaseMsg {
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-        bf.putShort(ServerConstant.VALIDATE);
-        if (this.type == ServerConstant.VALIDATE){
-            bf.putShort(this.validate);
-        }
-        else {
-            bf.putInt(member.id);
-            putStr(bf,member.name);
-        }
+        
+        bf.putShort(this.validate);
+        bf.putInt(member.id);
+        //putStr(bf,member.name);
         
         return packBuffer(bf);
     }
