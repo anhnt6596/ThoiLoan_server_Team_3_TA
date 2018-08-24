@@ -15,7 +15,7 @@ import util.database.DataModel;
 import util.server.ServerConstant;
 
 public class GuildBuilding extends DataModel {
-    public long lastRequestTroopTimeStamp = 0L;
+//    public long lastRequestTroopTimeStamp = 0L;
     public List<TroopGuild> troopGuildList = new ArrayList<TroopGuild>();
     //Danh sach cac user ma minh da cho linh: userId, amount
     public Map <Integer, Integer> userGotMap = new HashMap<Integer, Integer>();

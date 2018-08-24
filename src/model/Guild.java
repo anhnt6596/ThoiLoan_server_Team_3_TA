@@ -133,15 +133,29 @@ public class Guild extends DataModel implements Comparable<Guild> {
     }
     
     private void updateLastAskTroopTimeStamp(int userId) {
-        GuildBuilding guildBuilding;
+//        GuildBuilding guildBuilding;
+//        try {
+//            guildBuilding = (GuildBuilding) GuildBuilding.getModel(userId, GuildBuilding.class);
+//        } catch (Exception e) {
+//            return;
+//        }
+//        guildBuilding.lastRequestTroopTimeStamp = System.currentTimeMillis();
+//        try {
+//            guildBuilding.saveModel(userId);
+//        } catch (Exception e) {
+//        }
+
+        ZPUserInfo userInfo;
         try {
-            guildBuilding = (GuildBuilding) GuildBuilding.getModel(userId, GuildBuilding.class);
+            userInfo = (ZPUserInfo) ZPUserInfo.getModel(userId, ZPUserInfo.class);
         } catch (Exception e) {
             return;
         }
-        guildBuilding.lastRequestTroopTimeStamp = System.currentTimeMillis();
+        
+        userInfo.last_time_ask_for_troops = System.currentTimeMillis();
+
         try {
-            guildBuilding.saveModel(userId);
+            userInfo.saveModel(userId);
         } catch (Exception e) {
         }
     }

@@ -38,7 +38,7 @@ public class ResponseGetInteractionGuild extends BaseMsg {
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-        bf.putLong(guildBuilding.lastRequestTroopTimeStamp);
+//        bf.putLong(guildBuilding.lastRequestTroopTimeStamp);
         
         //List troop guild
         int sizeTroopGuildList = guildBuilding.troopGuildList.size();
