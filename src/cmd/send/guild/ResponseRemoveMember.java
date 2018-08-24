@@ -15,9 +15,8 @@ public class ResponseRemoveMember extends BaseMsg {
     private ZPUserInfo member;
     private short validate;
 
-    public ResponseRemoveMember(short type, ZPUserInfo member, short validate) {
-        super(CmdDefine.REMOVE_MEMBER);
-        this.type = type;
+    public ResponseRemoveMember(short validate,ZPUserInfo member) {
+        super(CmdDefine.REMOVE_MEMBER);        
         this.member = member;
         this.validate = validate;
     }

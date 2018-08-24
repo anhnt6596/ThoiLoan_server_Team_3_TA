@@ -246,7 +246,7 @@ public class GuildHandle extends BaseClientRequestHandler {
             if (userInfo == null) {
                ////send response error
                 logger.debug("khong ton tai user");
-               send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
+               send(new ResponseRemoveMember(ServerConstant.ERROR, null), user);
                return;
             }
             
@@ -254,37 +254,38 @@ public class GuildHandle extends BaseClientRequestHandler {
             if (memberRemoveInfo == null) {
                ////send response error
                 logger.debug("khong ton tai user out bang");
-               send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user);
+               send(new ResponseRemoveMember(ServerConstant.ERROR, null), user);
                return;
             }
             
             Guild guild = (Guild) Guild.getModel(userInfo.id_guild, Guild.class);
             if (guild == null) {
                 logger.debug("Khong ton tai guild, id guild = "+ user.getId());
-                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
+                send(new ResponseRemoveMember(ServerConstant.ERROR, null), user); 
                 return;
             }
             int id_leader = guild.getIdLeader();
             
             if (memberRemoveInfo.id!=userInfo.id && id_leader!=userInfo.id && !guild.checkIdMod(userInfo.id)){
                 logger.debug("Error! Nguoi ra quyet dinh loai bo khong phai bang chu, bang pho, cung khong phai tu out, id User = "+ userInfo.id);
-                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
+                send(new ResponseRemoveMember(ServerConstant.ERROR, null), user); 
                 return;
             }
             if ( userInfo.id!= member_remove.id  && id_leader!=userInfo.id &&  guild.getPosition(userInfo.id)<= guild.getPosition(member_remove.id)){
                 logger.debug("ERR! nguoi ra quyet dinh co chuc danh = "+ guild.getPosition(userInfo.id) + ", trong khi nguoi bi loai co chuc danh = "+ guild.getPosition(member_remove.id));
-                send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.ERROR), user); 
+                send(new ResponseRemoveMember(ServerConstant.ERROR, null ), user); 
                 return;
             }
             
             memberRemoveInfo.leftGuild();
             //thong bao cho toan the member
-            ResponseRemoveMember rs_removeMember = new ResponseRemoveMember(ServerConstant.TO_ALL, memberRemoveInfo, (short) 1);
+            ResponseRemoveMember rs_removeMember = new ResponseRemoveMember(ServerConstant.VALIDATE, memberRemoveInfo);
             for(Map.Entry<Integer, Short> member : guild.list_member.entrySet()) {
                 Integer id_member = member.getKey();
                 User Member = BitZeroServer.getInstance().getUserManager().getUserById(id_member);
                 //User Member = ExtensionUtility.globalUserManager.getUserById(id_member);
                 if (Member!= null) {
+                    logger.debug("thong bao remove den member co id: "+ id_member);
                     send (rs_removeMember, Member);
                 }
             }
@@ -305,7 +306,7 @@ public class GuildHandle extends BaseClientRequestHandler {
             
             memberRemoveInfo.saveModel(member_remove.id);
             logger.info("Remove thanh cong, saves model");
-            send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.SUCCESS), user); 
+            //send(new ResponseRemoveMember(ServerConstant.VALIDATE,null, ServerConstant.SUCCESS), user); 
             
         } catch (Exception e) {
         }
@@ -359,9 +360,10 @@ public class GuildHandle extends BaseClientRequestHandler {
                 ResponseAddRequestMember rs_addRequest = new  ResponseAddRequestMember(ServerConstant.TO_ALL, memberInfo, (short) 1);            
                 for(Map.Entry<Integer, Short> member : guild.list_member.entrySet()) {
                     Integer id = member.getKey();
-                    User Member = BitZeroServer.getInstance().getUserManager().getUserById(id_member);
+                    User Member = BitZeroServer.getInstance().getUserManager().getUserById(id);
                     //User Member = ExtensionUtility.globalUserManager.getUserById(id);
                     if (Member != null) {
+                        logger.info("gui thong bao add request member cho nguoi co id: "+ id);
                         send (rs_addRequest, Member);
                     }
                 }
@@ -383,7 +385,7 @@ public class GuildHandle extends BaseClientRequestHandler {
             memberInfo.saveModel(id_member);
             logger.debug("saved model");
             
-            send(new ResponseAddRequestMember(ServerConstant.VALIDATE,memberInfo, ServerConstant.SUCCESS), user);
+            //send(new ResponseAddRequestMember(ServerConstant.VALIDATE,memberInfo, ServerConstant.SUCCESS), user);
             
         } catch (Exception e) {
         }
