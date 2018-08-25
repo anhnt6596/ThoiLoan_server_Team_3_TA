@@ -3,6 +3,7 @@ package extension;
 
 import bitzero.engine.sessions.ISession;
 
+import bitzero.server.BitZeroServer;
 import bitzero.server.config.ConfigHandle;
 import bitzero.server.core.BZEventType;
 import bitzero.server.entities.User;
@@ -19,10 +20,17 @@ import bitzero.util.socialcontroller.exceptions.SocialControllerException;
 
 import cmd.receive.authen.RequestLogin;
 
+import cmd.send.guild.ResponseGiveTroop;
+
+import cmd.send.guild.ResponseOnlineMessage;
+
 import eventhandler.LoginSuccessHandler;
 import eventhandler.LogoutHandler;
 
 import java.util.List;
+
+import model.Guild;
+import model.ZPUserInfo;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -126,6 +134,24 @@ public class FresherExtension extends BZExtension {
         reqGet.unpackData();
        
         try {
+            //Send user online to members in guild
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(reqGet.userId, ZPUserInfo.class);
+            if (userInfo != null) {
+                int guildId = userInfo.id_guild;
+                if(guildId != -1){
+                    Guild guild = (Guild) Guild.getModel(guildId, Guild.class);
+                    //Send to all members of guild
+                    User otherUser;
+                    for (Integer idUser : guild.list_member.keySet()) {
+                        if(idUser == reqGet.userId) continue;
+                        otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
+                        if(otherUser != null){
+                            ExtensionUtility.getExtension().send(new ResponseOnlineMessage(reqGet.userId, ServerConstant.ONLINE), otherUser);
+                        }
+                    }
+                }
+            }
+            
             
             UserInfo uInfo = getUserInfo(reqGet.sessionKey, reqGet.userId, session.getAddress());
             User u = ExtensionUtility.instance().canLogin(uInfo, "", session);

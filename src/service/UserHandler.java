@@ -1,11 +1,14 @@
 package service;
 
+import bitzero.server.BitZeroServer;
 import bitzero.server.core.BZEventParam;
 import bitzero.server.core.BZEventType;
 import bitzero.server.core.IBZEvent;
 import bitzero.server.entities.User;
 import bitzero.server.extensions.BaseClientRequestHandler;
 import bitzero.server.extensions.data.DataCmd;
+
+import bitzero.util.ExtensionUtility;
 
 import cmd.CmdDefine;
 
@@ -15,8 +18,11 @@ import cmd.receive.user.RequestUserInfo;
 import cmd.send.demo.ResponseRequestAddResource;
 import cmd.send.demo.ResponseRequestUserInfo;
 
+import cmd.send.guild.ResponseOnlineMessage;
+
 import extension.FresherExtension;
 
+import model.Guild;
 import model.ZPUserInfo;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -119,6 +125,31 @@ public class UserHandler extends BaseClientRequestHandler {
     }
     private void userDisconnect(User user) {
         // log user disconnect
+        //Send user offline to members in guild
+        ZPUserInfo userInfo;
+        try {
+            userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+        } catch (Exception e) {
+            return;
+        }
+        int guildId = userInfo.id_guild;
+        if(guildId != -1){
+            Guild guild;
+            try {
+                guild = (Guild) Guild.getModel(guildId, Guild.class);
+            } catch (Exception e) {
+                return;
+            }
+            //Send to all members of guild
+            User otherUser;
+            for (Integer idUser : guild.list_member.keySet()) {
+                if(idUser == user.getId()) continue;
+                otherUser = BitZeroServer.getInstance().getUserManager().getUserById(idUser);
+                if(otherUser != null){
+                    ExtensionUtility.getExtension().send(new ResponseOnlineMessage(user.getId(), ServerConstant.OFFLINE), otherUser);
+                }
+            }
+        }
     }
 
     
