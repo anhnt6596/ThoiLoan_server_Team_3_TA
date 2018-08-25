@@ -31,7 +31,7 @@ public class GuildBuilding extends DataModel {
         } catch (Exception e) {
             return 0;
         }
-        if (mapInfo == null) {         
+        if (mapInfo == null) {
            return 0;
         }
         int level = mapInfo.listBuilding.get(ServerConstant.ID_CLC_BUILDING).level;
