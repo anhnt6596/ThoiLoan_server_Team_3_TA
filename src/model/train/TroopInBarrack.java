@@ -1,61 +1,77 @@
 package model.train;
 
-import bitzero.server.entities.User;
-
-import bitzero.util.common.business.CommonHandle;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-
-import java.util.Iterator;
-
-import model.Troop;
-
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import util.database.DataModel;
 
 import util.server.ServerConstant;
 
 public class TroopInBarrack extends DataModel {
-    public String name;
-//    public int level;                               //doc level tu TroopInfo tra ve
-    public int amount;
-    public int currentPosition;
-    public int housingSpace;                                        //doc tu config
-    public int trainingTime;                                        //doc tu config
-    public int trainingDarkElixir;                                  //cost phu thuoc vao level
-    public int trainingElixir;
-    
-    public TroopInBarrack(String _name) {
+    private String name;
+    private int amount;
+    private int currentPosition;
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
+
+    public int getAmount() {
+        return amount;
+    }
+
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
+    }
+
+    public int getCurrentPosition() {
+        return currentPosition;
+    }
+
+    public TroopInBarrack(String name) {
         super();
-        name = _name;
-//        level = _level;
-        amount = 0;
-        currentPosition = -1;
-        initConfig();
+        this.name = name;
+        this.amount = 0;
+        this.currentPosition = -1;
     }
     
-    public void initConfig() {
-        JSONObject troopBaseConfig = ServerConstant.configTroopBase;
-        
+    public int getTrainingTime() {
         try {
-            Iterator<?> keys = troopBaseConfig.keys();
-            while (keys.hasNext()){
-                String key = (String) keys.next();
-                JSONObject troopType = (JSONObject) troopBaseConfig.get(key);
-                
-                if (key.equals(name)){
-                    housingSpace = troopType.getInt("housingSpace");
-                    trainingTime = troopType.getInt("trainingTime");
-                }
-            }
-        } catch (Exception e){
-            CommonHandle.writeErrLog(e);
+            return ServerConstant.configTroopBase.getJSONObject(this.name).getInt("trainingTime");
+        } catch (JSONException e) {
+            return 0;
         }
     }
+    
+    public int getHousingSpace() {
+        try {
+            return ServerConstant.configTroopBase.getJSONObject(this.name).getInt("housingSpace");
+        } catch (JSONException e) {
+            return 0;
+        }
+    }
+    
+    public int getTrainingElixir(int levelTroop) {
+        try {
+            return ServerConstant.configTroop.getJSONObject(this.name).getJSONObject(Integer.toString(levelTroop)).getInt("trainingElixir");
+        } catch (JSONException e) {
+            return 0;
+        }
+    }
+    
+    public int getTrainingDarkElixir(int levelTroop) {
+        try {
+            return ServerConstant.configTroop.getJSONObject(this.name).getJSONObject(Integer.toString(levelTroop)).getInt("trainingDarkElixir");
+        } catch (JSONException e) {
+            return 0;
+        }
+    }
+                                       
 }

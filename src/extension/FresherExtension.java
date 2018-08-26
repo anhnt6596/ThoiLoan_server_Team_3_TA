@@ -1,6 +1,5 @@
 package extension;
 
-
 import bitzero.engine.sessions.ISession;
 
 import bitzero.server.BitZeroServer;
@@ -16,11 +15,7 @@ import bitzero.util.common.business.Debug;
 import bitzero.util.datacontroller.business.DataController;
 import bitzero.util.socialcontroller.bean.UserInfo;
 
-import bitzero.util.socialcontroller.exceptions.SocialControllerException;
-
 import cmd.receive.authen.RequestLogin;
-
-import cmd.send.guild.ResponseGiveTroop;
 
 import cmd.send.guild.ResponseOnlineMessage;
 
@@ -47,7 +42,6 @@ import util.GuestLogin;
 import util.metric.LogObject;
 import util.metric.MetricLog;
 
-import service.HarvestHandle;
 import service.InteractiveGuildHandler;
 
 import util.server.ServerConstant;
@@ -151,7 +145,6 @@ public class FresherExtension extends BZExtension {
                     }
                 }
             }
-            
             
             UserInfo uInfo = getUserInfo(reqGet.sessionKey, reqGet.userId, session.getAddress());
             User u = ExtensionUtility.instance().canLogin(uInfo, "", session);

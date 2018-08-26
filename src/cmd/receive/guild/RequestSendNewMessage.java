@@ -19,8 +19,8 @@ public class RequestSendNewMessage extends BaseCmd {
     public void unpackData(){
         ByteBuffer bf = makeBuffer();
         try {
-            type = readShort(bf);
-            content = readString(bf);
+            this.type = readShort(bf);
+            this.content = readString(bf);
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);
         }

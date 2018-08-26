@@ -220,12 +220,24 @@ public class ZPUserInfo extends DataModel {
         return id_logo_guild;
     }
 
-    public void setLast_time_ask_for_troops(int last_time_ask_for_troops) {
+    public void setLast_time_ask_for_troops(long last_time_ask_for_troops) {
         this.last_time_ask_for_troops = last_time_ask_for_troops;
     }
 
     public long getLast_time_ask_for_troops() {
         return last_time_ask_for_troops;
+    }
+    
+    public int getTroopLevel(String troopType) {
+        int level = 1;
+        try {
+            TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+            Troop troop = troopInfo.troopMap.get(troopType);
+            level = troop.level;
+        } catch (Exception e) {
+            return 0;
+        }
+        return level;
     }
 
     public void reduceUserResources(int gold, int elixir, int darkElixir, int coin, String type, boolean isAdd ){
@@ -295,6 +307,7 @@ public class ZPUserInfo extends DataModel {
         this.last_time_left_guild = System.currentTimeMillis();
     }
 
-    public void getId() {
+    public int getId() {
+        return this.id;
     }
 }

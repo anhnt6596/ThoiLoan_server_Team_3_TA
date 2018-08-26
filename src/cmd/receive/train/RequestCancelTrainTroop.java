@@ -19,8 +19,8 @@ public class RequestCancelTrainTroop extends BaseCmd {
     public void unpackData(){
         ByteBuffer bf = makeBuffer();
         try {
-            idBarrack = readInt(bf);
-            typeTroop = readString(bf);
+            this.idBarrack = readInt(bf);
+            this.typeTroop = readString(bf);
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);
         }
