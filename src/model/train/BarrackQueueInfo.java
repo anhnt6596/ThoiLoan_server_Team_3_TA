@@ -1,6 +1,5 @@
 package model.train;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +22,7 @@ public class BarrackQueueInfo extends DataModel {
         BarrackQueue barrackQueue;
         for (Integer id : barrackQueueMap.keySet()) {
             barrackQueue = barrackQueueMap.get(id);
-            if(barrackQueue.startTime < minTime && barrackQueue.amountItemInQueue > 0){
+            if(barrackQueue.startTime < minTime && barrackQueue.getAmountItemInQueue() > 0){
                 minTime = barrackQueue.startTime;
             }
         }
@@ -40,9 +39,9 @@ public class BarrackQueueInfo extends DataModel {
             //id cua Barrack
             System.out.println("-------------- BarrackQueue thu " + i);
             System.out.println("id Barrack " + idBarrack);
-            System.out.println("level Barrack " + barrackQueue.barrackLevel);
-            System.out.println("amountItemInQueue " + barrackQueue.amountItemInQueue);
-            System.out.println("totalTroopCapacity " + barrackQueue.totalTroopCapacity);
+            System.out.println("level Barrack " + barrackQueue.getBarrackLevel());
+            System.out.println("amountItemInQueue " + barrackQueue.getAmountItemInQueue());
+            System.out.println("totalTroopCapacity " + barrackQueue.getTotalTroopCapacity());
             System.out.println("startTime " + barrackQueue.startTime);
             
             //troopList
@@ -53,8 +52,8 @@ public class BarrackQueueInfo extends DataModel {
                 troopInBarrack = barrackQueue.troopListMap.get(troopType);
                 System.out.println("-------------- Troop thu " + j);
                 System.out.println("Type troop: --- " + troopType);
-                System.out.println("Amount troop in queue: --- " + troopInBarrack.amount);
-                System.out.println("Current Position of troop in queue: --- " + troopInBarrack.currentPosition);
+                System.out.println("Amount troop in queue: --- " + troopInBarrack.getAmount());
+                System.out.println("Current Position of troop in queue: --- " + troopInBarrack.getCurrentPosition());
                 j++;
             }
             System.out.println("-------------- END TroopList ======================");
@@ -81,22 +80,18 @@ public class BarrackQueueInfo extends DataModel {
             //troopList
             TroopInBarrack troopInBarrack;
             long amountTrainedTroop;
-            if(barrackQueue.amountItemInQueue > 0 && barrackQueue.totalTroopCapacity > 0){
-                for(int i = 0; i < barrackQueue.amountItemInQueue; i++) {
+            if(barrackQueue.getAmountItemInQueue() > 0 && barrackQueue.getTotalTroopCapacity() > 0){
+                for(int i = 0; i < barrackQueue.getAmountItemInQueue(); i++) {
                     troopInBarrack = barrackQueue.getTroopByPosition(i);
-                    amountTrainedTroop = deltaTime / (troopInBarrack.trainingTime * 1000);
-                    if(amountTrainedTroop >= troopInBarrack.amount){
-                        totalTroopCapacityReturn += troopInBarrack.amount * troopInBarrack.housingSpace;        
-                        int a = barrackQueue.amountItemInQueue - 1;
-                        if(a == 0){     //Het troop thi break
-                            break;
-                        }
-                        deltaTime -=  amountTrainedTroop * (troopInBarrack.trainingTime * 1000);
-                        if(deltaTime == 0){
-                            break;
-                        }    
+                    amountTrainedTroop = deltaTime / (troopInBarrack.getTrainingTime() * 1000);
+                    if(amountTrainedTroop >= troopInBarrack.getAmount()){
+                        totalTroopCapacityReturn += troopInBarrack.getAmount() * troopInBarrack.getHousingSpace();        
+                        int a = barrackQueue.getAmountItemInQueue() - 1;
+                        if(a == 0) break;
+                        deltaTime -=  troopInBarrack.getAmount() * (troopInBarrack.getTrainingTime() * 1000);
+                        if(deltaTime == 0) break;  
                     }else if(amountTrainedTroop >= 1){
-                        totalTroopCapacityReturn += amountTrainedTroop * troopInBarrack.housingSpace;
+                        totalTroopCapacityReturn += amountTrainedTroop * troopInBarrack.getHousingSpace();
                         break;
                     }else{
                         break;

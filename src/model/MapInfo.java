@@ -175,7 +175,7 @@ public class MapInfo extends DataModel{
         Building building = new Building(this.size_building,type,level,posX,posY, status);                
         this.size_building++;
         this.listBuilding.add(building);
-        System.out.println("add them building "+ building.type+", time start: "+building.timeStart+", status ="+building.status);
+//        System.out.println("add them building "+ building.type+", time start: "+building.timeStart+", status ="+building.status);
     }
     public MapArray getMapArray(){
         MapArray mapArray = new MapArray();
@@ -362,8 +362,8 @@ public class MapInfo extends DataModel{
             return;
         }
 
-        BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
-        newBarrackQueue.barrackLevel++;
+        BarrackQueue newBarrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
+        newBarrackQueue.setBarrackLevel(newBarrackQueue.getBarrackLevel() + 1);
         
         //Dat lai startTime cho barrack
         newBarrackQueue.startTime = System.currentTimeMillis() - newBarrackQueue.startTime;
@@ -377,7 +377,7 @@ public class MapInfo extends DataModel{
             return;
         }
         try {
-            String troopType = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.barrackLevel)).getString("unlockedUnit");
+            String troopType = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.getBarrackLevel())).getString("unlockedUnit");
             TroopInBarrack troop = new TroopInBarrack(troopType);
             newTroopListMap.put(troopType, troop);                         
         } catch (JSONException e) {

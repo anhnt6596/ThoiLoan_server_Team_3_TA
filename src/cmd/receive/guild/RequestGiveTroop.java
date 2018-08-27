@@ -20,9 +20,9 @@ public class RequestGiveTroop extends BaseCmd{
     public void unpackData(){
         ByteBuffer bf = makeBuffer();
         try {
-            idUserGet = readInt(bf);
-            troopType = readString(bf);
-            level = readShort(bf);
+            this.idUserGet = readInt(bf);
+            this.troopType = readString(bf);
+            this.level = readShort(bf);
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);
         }

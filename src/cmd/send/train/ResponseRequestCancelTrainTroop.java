@@ -7,11 +7,11 @@ import cmd.CmdDefine;
 import java.nio.ByteBuffer;
 
 public class ResponseRequestCancelTrainTroop extends BaseMsg {
-    public short validate ;
+    private short validate;
     
-    public ResponseRequestCancelTrainTroop(short _validate) {
+    public ResponseRequestCancelTrainTroop(short validate) {
         super(CmdDefine.CANCEL_TRAIN_TROOP);
-        validate = _validate;
+        this.validate = validate;
     }
     
     @Override

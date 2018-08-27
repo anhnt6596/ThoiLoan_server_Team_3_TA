@@ -1,6 +1,5 @@
 package cmd.send.guild;
 
-import bitzero.server.entities.User;
 import bitzero.server.extensions.data.BaseMsg;
 
 import cmd.CmdDefine;
@@ -18,33 +17,29 @@ import model.GuildBuilding;
 import model.MessageGuild;
 import model.TroopGuild;
 
-import model.train.TroopInBarrack;
-
 import util.server.ServerConstant;
 
-
 public class ResponseGetInteractionGuild extends BaseMsg {
-    GuildBuilding guildBuilding;
-    List<MessageGuild> list_message;
-    Map <Integer, Short> list_member_online;
+    private GuildBuilding guildBuilding;
+    private List<MessageGuild> listMessage;
+    private Map<Integer, Short> listMemberOnline;
     
-    public ResponseGetInteractionGuild(GuildBuilding _guildBuilding, List<MessageGuild> _list_message, Map <Integer, Short> _list_member_online) {
+    public ResponseGetInteractionGuild(GuildBuilding guildBuilding, List<MessageGuild> listMessage, Map<Integer, Short> listMemberOnline) {
         super(CmdDefine.GET_INTERACTION_GUILD);
-        guildBuilding = _guildBuilding;
-        list_message = _list_message;
-        list_member_online = _list_member_online;
+        this.guildBuilding = guildBuilding;
+        this.listMessage = listMessage;
+        this.listMemberOnline = listMemberOnline;
     }
     
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-//        bf.putLong(guildBuilding.lastRequestTroopTimeStamp);
         
         //List troop guild
-        int sizeTroopGuildList = guildBuilding.troopGuildList.size();
+        int sizeTroopGuildList = this.guildBuilding.troopGuildList.size();
         bf.putInt(sizeTroopGuildList);
         TroopGuild troop;
-        Iterator<TroopGuild> i = guildBuilding.troopGuildList.iterator();
+        Iterator<TroopGuild> i = this.guildBuilding.troopGuildList.iterator();
         while (i.hasNext()) {
             troop = i.next();
             putStr(bf, troop.name);
@@ -52,10 +47,10 @@ public class ResponseGetInteractionGuild extends BaseMsg {
         }
         
         //List message
-        int sizeMessageList = list_message.size();
+        int sizeMessageList = this.listMessage.size();
         bf.putInt(sizeMessageList);
         MessageGuild mess;
-        Iterator<MessageGuild> a = list_message.iterator();
+        Iterator<MessageGuild> a = this.listMessage.iterator();
         while (a.hasNext()) {
             mess = a.next();
             bf.putShort(mess.type);
@@ -72,21 +67,21 @@ public class ResponseGetInteractionGuild extends BaseMsg {
         }
         
         //List member
-        int sizeMemberList = list_member_online.size();
+        int sizeMemberList = this.listMemberOnline.size();
         bf.putInt(sizeMemberList);
-        for (int idUser : list_member_online.keySet()) {
-            short valueOnline = list_member_online.get(idUser);
+        for (int idUser : this.listMemberOnline.keySet()) {
+            short valueOnline = this.listMemberOnline.get(idUser);
             bf.putInt(idUser);
             putStr(bf, "Fresher_" + Integer.toString(idUser));
             bf.putShort(valueOnline);
         }
         
         //userGotMap
-        int sizeUserGotMap = guildBuilding.userGotMap.size();
+        int sizeUserGotMap = this.guildBuilding.userGotMap.size();
         bf.putInt(sizeUserGotMap);
-        for (Integer idUser : guildBuilding.userGotMap.keySet()) {
+        for (Integer idUser : this.guildBuilding.userGotMap.keySet()) {
             bf.putInt(idUser);
-            bf.putInt(guildBuilding.userGotMap.get(idUser));
+            bf.putInt(this.guildBuilding.userGotMap.get(idUser));
         }
         
         return packBuffer(bf);

@@ -47,7 +47,7 @@ public class TroopInfo extends DataModel {
 
     public void initListTroop() {
         String path = System.getProperty("user.dir")+"/conf/";
-        System.out.println("Working Directory = " + path);
+//        System.out.println("Working Directory = " + path);
         
         StringBuffer contents = new StringBuffer();
         
