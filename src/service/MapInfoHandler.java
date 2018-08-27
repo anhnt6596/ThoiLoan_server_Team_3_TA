@@ -895,13 +895,13 @@ MapInfoHandler extends BaseClientRequestHandler {
             System.out.println("======================= Khong get duoc Model BarrackQueueInfo ======================");
             return;
         }
-        BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
-        newBarrackQueue.barrackLevel++;
+        BarrackQueue newBarrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
+        newBarrackQueue.setBarrackLevel(newBarrackQueue.getBarrackLevel() + 1);
         
         //Dat lai startTime cho barrack
         newBarrackQueue.startTime = System.currentTimeMillis() - newBarrackQueue.startTime;
        
-        Map <String, TroopInBarrack> newTroopListMap = newBarrackQueue.troopListMap;
+        Map<String, TroopInBarrack> newTroopListMap = newBarrackQueue.troopListMap;
         
         JSONObject barrack_1Config;
         try {
@@ -910,9 +910,7 @@ MapInfoHandler extends BaseClientRequestHandler {
             return;
         }
         try {
-            newBarrackQueue.queueLength = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.barrackLevel)).getInt("queueLength");
-            
-            String troopType = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.barrackLevel)).getString("unlockedUnit");
+            String troopType = barrack_1Config.getJSONObject(Integer.toString(newBarrackQueue.getBarrackLevel())).getString("unlockedUnit");
             TroopInBarrack troop = new TroopInBarrack(troopType);
             newTroopListMap.put(troopType, troop);                         
         } catch (JSONException e) {

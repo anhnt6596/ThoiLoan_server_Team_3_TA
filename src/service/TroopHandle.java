@@ -27,11 +27,14 @@ import cmd.receive.user.RequestUserInfo;
 import cmd.send.demo.ResponseQuickFinishResearch;
 import cmd.send.demo.ResponseRequestAddResource;
 import cmd.send.demo.ResponseRequestMapInfo;
+import cmd.send.demo.ResponseRequestQuickFinish;
 import cmd.send.demo.ResponseRequestUserInfo;
 
 import cmd.send.demo.ResponseResearch;
 import cmd.send.demo.ResponseResearchComplete;
 import cmd.send.demo.ResponseTroopInfo;
+
+import cmd.send.train.ResponseRequestBarrackQueueInfo;
 
 import extension.FresherExtension;
 
@@ -45,6 +48,8 @@ import model.MapInfo;
 import model.Troop;
 import model.TroopInfo;
 import model.ZPUserInfo;
+
+import model.train.BarrackQueueInfo;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 
@@ -96,6 +101,17 @@ public class TroopHandle extends BaseClientRequestHandler {
 
     private void processTroopInfo(User user, RequestTroopInfo troop) {
         try {
+            //Check newest population
+            try {
+                BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+                if(barrackQueueInfo != null){
+                    barrackQueueInfo.checkFirst(user);      
+                    barrackQueueInfo.saveModel(user.getId());
+                }          
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+            
             System.out.println("get troop info, userId: " + user.getId());
             TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
             if (troopInfo == null) {
@@ -125,6 +141,8 @@ public class TroopHandle extends BaseClientRequestHandler {
                     }
                 }
             }
+            
+            
             send(new ResponseTroopInfo(troopInfo), user);
         } catch (Exception e) {
             System.out.println(e);

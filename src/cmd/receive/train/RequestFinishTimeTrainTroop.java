@@ -20,9 +20,9 @@ public class RequestFinishTimeTrainTroop extends BaseCmd {
     public void unpackData(){
         ByteBuffer bf = makeBuffer();
         try {
-            idBarrack = readInt(bf);
-            typeTroop = readString(bf);
-            remainTroop = readInt(bf);
+            this.idBarrack = readInt(bf);
+            this.typeTroop = readString(bf);
+            this.remainTroop = readInt(bf);
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);
         }

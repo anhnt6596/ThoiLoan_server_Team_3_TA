@@ -6,20 +6,16 @@ import cmd.CmdDefine;
 
 import java.nio.ByteBuffer;
 
-import model.train.BarrackQueueInfo;
-
-import util.server.ServerConstant;
-
 public class ResponseRequestFinishTimeTrainTroop extends BaseMsg {
-    public short validate ;
-    public int idBarrack;
-    String troopType;
+    private short validate;
+    private int idBarrack;
+    private String troopType;
     
-    public ResponseRequestFinishTimeTrainTroop(short _validate, int _idBarrack, String _troopType) {
+    public ResponseRequestFinishTimeTrainTroop(short validate, int idBarrack, String troopType) {
         super(CmdDefine.FINISH_TIME_TRAIN_TROOP);
-        validate = _validate;
-        idBarrack = _idBarrack;
-        troopType = _troopType;
+        this.validate = validate;
+        this.idBarrack = idBarrack;
+        this.troopType = troopType;
     }
     
     @Override

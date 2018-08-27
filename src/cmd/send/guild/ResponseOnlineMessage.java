@@ -7,20 +7,20 @@ import cmd.CmdDefine;
 import java.nio.ByteBuffer;
 
 public class ResponseOnlineMessage extends BaseMsg {
-    int userId;
-    short onlineValue;
+    private int userId;
+    private short onlineValue;
     
-    public ResponseOnlineMessage(int _userId, short _onlineValue) {
+    public ResponseOnlineMessage(int userId, short onlineValue) {
         super(CmdDefine.ONLINE_MESSAGE);
-        userId = _userId;
-        onlineValue = _onlineValue;
+        this.userId = userId;
+        this.onlineValue = onlineValue;
     }
     
     @Override
     public byte[] createData() {
         ByteBuffer bf = makeBuffer();
-        bf.putInt(userId);
-        bf.putShort(onlineValue);
+        bf.putInt(this.userId);
+        bf.putShort(this.onlineValue);
         return packBuffer(bf);
     }
 }

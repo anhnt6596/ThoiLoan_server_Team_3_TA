@@ -85,19 +85,13 @@ public class Guild extends DataModel implements Comparable<Guild> {
     
     public void addMessage(MessageGuild message){
         //Neu la type ask troop thi xoa tin nhan ask troop trc do neu co
-        
-        System.out.println("XU LY NEW MESSAGE");
-
-        
         if(message.type == ServerConstant.ASK_TROOP){
             removeMessageRequestTroop(message.id_user);
             updateLastAskTroopTimeStamp(message.id_user);
-        }
-        
+        }  
         if(list_message.size() >= ServerConstant.MAX_MESSAGES_QUEUE){
             list_message.remove(0);
         }
-        
         list_message.add(message);
     }
     
@@ -114,9 +108,7 @@ public class Guild extends DataModel implements Comparable<Guild> {
             }
         }         
     }
-    
-    
-    
+
     
     //Cap nhat lai current troop capacity trong message xin quan
     public void updateRequestTroopMessage(int userId, int increaseCapacity) {
@@ -126,25 +118,12 @@ public class Guild extends DataModel implements Comparable<Guild> {
             mess = i.next();
             if(mess.type == ServerConstant.ASK_TROOP && mess.id_user == userId){
                 mess.currentCapacityTroop += increaseCapacity;
-                System.out.println("====================== DUYYYYYYYYYYYYYYYYYYYYYY increaseCapacity: " + mess.currentCapacityTroop);
                 break;
             }
         }         
     }
     
     private void updateLastAskTroopTimeStamp(int userId) {
-//        GuildBuilding guildBuilding;
-//        try {
-//            guildBuilding = (GuildBuilding) GuildBuilding.getModel(userId, GuildBuilding.class);
-//        } catch (Exception e) {
-//            return;
-//        }
-//        guildBuilding.lastRequestTroopTimeStamp = System.currentTimeMillis();
-//        try {
-//            guildBuilding.saveModel(userId);
-//        } catch (Exception e) {
-//        }
-
         ZPUserInfo userInfo;
         try {
             userInfo = (ZPUserInfo) ZPUserInfo.getModel(userId, ZPUserInfo.class);
@@ -152,7 +131,7 @@ public class Guild extends DataModel implements Comparable<Guild> {
             return;
         }
         
-        userInfo.last_time_ask_for_troops = System.currentTimeMillis();
+        userInfo.setLast_time_ask_for_troops(System.currentTimeMillis());
 
         try {
             userInfo.saveModel(userId);

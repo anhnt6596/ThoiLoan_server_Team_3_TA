@@ -6,34 +6,31 @@ import cmd.CmdDefine;
 
 import java.nio.ByteBuffer;
 
-import model.Troop;
-
 import model.train.BarrackQueue;
 import model.train.BarrackQueueInfo;
 import model.train.TroopInBarrack;
 
 public class ResponseRequestBarrackQueueInfo extends BaseMsg {
-    BarrackQueueInfo barrackQueueInfo;
+    private BarrackQueueInfo barrackQueueInfo;
     
-    public ResponseRequestBarrackQueueInfo(BarrackQueueInfo _barrackQueueInfo) {
+    public ResponseRequestBarrackQueueInfo(BarrackQueueInfo barrackQueueInfo) {
         super(CmdDefine.GET_BARRACK_QUEUE_INFO);
-        barrackQueueInfo = _barrackQueueInfo;
+        this.barrackQueueInfo = barrackQueueInfo;
     }
 
     @Override
     public byte[] createData() {
         BarrackQueue barrackQueue;
         ByteBuffer bf = makeBuffer();
-        int sizeBarrackQueueInfo = barrackQueueInfo.barrackQueueMap.size();
+        int sizeBarrackQueueInfo = this.barrackQueueInfo.barrackQueueMap.size();
         //kich thuoc cua BarrackQueueInfo
         bf.putInt(sizeBarrackQueueInfo);
-        for (Integer idBarrack : barrackQueueInfo.barrackQueueMap.keySet()) {
-            barrackQueue = barrackQueueInfo.barrackQueueMap.get(idBarrack);
+        for (Integer idBarrack : this.barrackQueueInfo.barrackQueueMap.keySet()) {
+            barrackQueue = this.barrackQueueInfo.barrackQueueMap.get(idBarrack);
             //id cua Barrack
             bf.putInt(idBarrack);
-//            bf.putInt(barrackQueue.barrackLevel);
-            bf.putInt(barrackQueue.amountItemInQueue);
-            bf.putInt(barrackQueue.totalTroopCapacity);
+            bf.putInt(barrackQueue.getAmountItemInQueue());
+            bf.putInt(barrackQueue.getTotalTroopCapacity());
             bf.putLong(barrackQueue.startTime);
             
             //troopList
@@ -43,10 +40,9 @@ public class ResponseRequestBarrackQueueInfo extends BaseMsg {
             bf.putInt(sizeTroopList);
             for (String troopType : barrackQueue.troopListMap.keySet()) {
                 troopInBarrack = barrackQueue.troopListMap.get(troopType);
-                //type cua troop
                 putStr(bf, troopType);
-                bf.putInt(troopInBarrack.amount);
-                bf.putInt(troopInBarrack.currentPosition);
+                bf.putInt(troopInBarrack.getAmount());
+                bf.putInt(troopInBarrack.getCurrentPosition());
             }
         }
         return packBuffer(bf);

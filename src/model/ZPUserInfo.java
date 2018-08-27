@@ -1,5 +1,7 @@
 package model;
 
+import bitzero.server.entities.User;
+
 import bitzero.util.common.business.CommonHandle;
 
 
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import util.database.DataModel;
@@ -220,12 +223,108 @@ public class ZPUserInfo extends DataModel {
         return id_logo_guild;
     }
 
-    public void setLast_time_ask_for_troops(int last_time_ask_for_troops) {
+    public void setLast_time_ask_for_troops(long last_time_ask_for_troops) {
         this.last_time_ask_for_troops = last_time_ask_for_troops;
     }
 
     public long getLast_time_ask_for_troops() {
         return last_time_ask_for_troops;
+    }
+    
+    public int getTroopLevel(String troopType) {
+        int level = 1;
+        try {
+            TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+            Troop troop = troopInfo.troopMap.get(troopType);
+            level = troop.level;
+        } catch (Exception e) {
+            return 0;
+        }
+        return level;
+    }
+    
+    public int getTotalCapacityAMCs() {
+        int total = 0;
+        MapInfo mapInfo;
+        try {
+            mapInfo = (MapInfo) MapInfo.getModel(this.getId(), MapInfo.class);
+        } catch (Exception e) {
+            System.out.println("=============== KHONG GET DC MAP INFO =================");
+            return 0;
+        }
+        
+        JSONObject amcConfig;
+        try {
+            amcConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
+        } catch (JSONException e) {
+            System.out.println("=============== KHONG GET DC ARMY CONFIG =================");
+            return 0;
+        }
+
+        List<Building> listBuilding = mapInfo.listBuilding;
+        Iterator<Building> i = listBuilding.iterator();
+        while (i.hasNext()) {
+            Building build = i.next();
+
+            if((build.status.equals("complete") || build.status.equals("upgrade")) && (build.type.equals("AMC_1"))){
+                int capacity;
+
+                try {
+                    capacity = amcConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
+                    System.out.println("=============== capacity:  " + capacity);
+                } catch (JSONException e) {
+                    return 0;
+                }
+                total += capacity;
+            }
+        }
+        return total;
+    }
+    
+    public int getCurrentCapacityTroop() {
+        int total = 0;
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return 0;
+        }
+        
+        JSONObject troopBaseConfig = ServerConstant.configTroopBase;
+        
+        int space;
+        Troop troop;
+        for (String troopType : troopInfo.troopMap.keySet()) {
+            troop = troopInfo.troopMap.get(troopType);
+            try {
+                space = troopBaseConfig.getJSONObject(troopType).getInt("housingSpace");
+            } catch (JSONException e) {
+                return 0;
+            }
+            total += space * troop.population;
+        }
+        
+        return total;
+    }
+
+    public void increaseAmountTroop(String typeTroop, int amount) {
+        System.out.println("Linh " + typeTroop + " tang " + amount);
+        
+        //Tang so luong loai troop nay
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return;
+        }
+        
+        Troop troopObj = troopInfo.troopMap.get(typeTroop);
+        troopObj.population += amount;
+        troopInfo.troopMap.put(typeTroop, troopObj);
+        try {
+            troopInfo.saveModel(this.getId());
+        } catch (Exception e) {
+        }
     }
 
     public void reduceUserResources(int gold, int elixir, int darkElixir, int coin, String type, boolean isAdd ){
@@ -295,6 +394,7 @@ public class ZPUserInfo extends DataModel {
         this.last_time_left_guild = System.currentTimeMillis();
     }
 
-    public void getId() {
+    public int getId() {
+        return this.id;
     }
 }
