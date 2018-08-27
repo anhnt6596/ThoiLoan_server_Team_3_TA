@@ -320,7 +320,7 @@ public class MapInfo extends DataModel{
     }
 
     public void checkStatus(User user) {
-        System.out.println("***********checkbuilding **********************");
+        //System.out.println("***********checkbuilding **********************");
         for (Building building : this.listBuilding){
             if ( !building.status.equals(ServerConstant.destroy_status)){
                 
@@ -424,7 +424,7 @@ public class MapInfo extends DataModel{
     }
     
     public void print(){
-        System.out.println("***********in list building **********************");
+        //System.out.println("***********in list building **********************");
         for (Building building : this.listBuilding){
             System.out.println(building.type+" "+"time start: "+building.timeStart+" "+"status "+building.status+"level: "+building.level);
         }
