@@ -23,6 +23,7 @@ import util.database.DataModel;
 import util.server.ServerConstant;
 
 public class BarrackQueue extends DataModel {
+    private int id;
     private int barrackLevel;           
     private int amountItemInQueue;                //So loai troop dang train
     private int totalTroopCapacity;               //Tong so capacity hien tai cua barrack <= queuelength
@@ -42,8 +43,16 @@ public class BarrackQueue extends DataModel {
             System.out.println("======================= Khong the khoi tao troopList tu BarrackQueue ======================");
         }
     }
-    
-    
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+
     public void doReset() {
         amountItemInQueue = 0;
         totalTroopCapacity = 0;

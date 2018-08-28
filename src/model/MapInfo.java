@@ -112,7 +112,7 @@ public class MapInfo extends DataModel{
                     
             }
             
-            System.out.println("listbuilding "+ this.listBuilding.size()+ " and size = "+this.size_building); 
+//            System.out.println("listbuilding "+ this.listBuilding.size()+ " and size = "+this.size_building); 
             
             //du lieu co cay hoa la
                         
@@ -362,7 +362,8 @@ public class MapInfo extends DataModel{
             return;
         }
 
-        BarrackQueue newBarrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
+        BarrackQueue newBarrackQueue = barrackQueueInfo.getBarrackQueueById(id);
+        int index = barrackQueueInfo.barrackQueueList.indexOf(newBarrackQueue);
         newBarrackQueue.setBarrackLevel(newBarrackQueue.getBarrackLevel() + 1);
         
         //Dat lai startTime cho barrack
@@ -384,7 +385,8 @@ public class MapInfo extends DataModel{
             
         }
         
-        barrackQueueInfo.barrackQueueMap.put(id, newBarrackQueue);
+        barrackQueueInfo.barrackQueueList.set(index, newBarrackQueue);
+        
         try{
             barrackQueueInfo.saveModel(user.getId());
         }catch (Exception e) {
@@ -408,7 +410,8 @@ public class MapInfo extends DataModel{
             barrackQueueInfo = new BarrackQueueInfo();
         }
         BarrackQueue barrackQueue = new BarrackQueue(1);
-        barrackQueueInfo.barrackQueueMap.put(id, barrackQueue);
+        barrackQueue.setId(id);
+        barrackQueueInfo.barrackQueueList.add(barrackQueue);
         try{
             barrackQueueInfo.saveModel(user.getId());
         }catch (Exception e) {

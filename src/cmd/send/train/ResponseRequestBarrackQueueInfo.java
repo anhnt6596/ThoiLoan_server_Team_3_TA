@@ -22,13 +22,13 @@ public class ResponseRequestBarrackQueueInfo extends BaseMsg {
     public byte[] createData() {
         BarrackQueue barrackQueue;
         ByteBuffer bf = makeBuffer();
-        int sizeBarrackQueueInfo = this.barrackQueueInfo.barrackQueueMap.size();
+        int sizeBarrackQueueInfo = barrackQueueInfo.barrackQueueList.size();
         //kich thuoc cua BarrackQueueInfo
         bf.putInt(sizeBarrackQueueInfo);
-        for (Integer idBarrack : this.barrackQueueInfo.barrackQueueMap.keySet()) {
-            barrackQueue = this.barrackQueueInfo.barrackQueueMap.get(idBarrack);
+        for(int j = 0; j < barrackQueueInfo.barrackQueueList.size(); j++) {
+            barrackQueue = barrackQueueInfo.barrackQueueList.get(j);
             //id cua Barrack
-            bf.putInt(idBarrack);
+            bf.putInt(barrackQueue.getId());
             bf.putInt(barrackQueue.getAmountItemInQueue());
             bf.putInt(barrackQueue.getTotalTroopCapacity());
             bf.putLong(barrackQueue.startTime);

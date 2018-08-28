@@ -277,6 +277,8 @@ public class GuildHandle extends BaseClientRequestHandler {
                 return;
             }
             
+            
+            
             memberRemoveInfo.leftGuild();
             //thong bao cho toan the member
             ResponseRemoveMember rs_removeMember = new ResponseRemoveMember(ServerConstant.VALIDATE, memberRemoveInfo);
@@ -292,8 +294,9 @@ public class GuildHandle extends BaseClientRequestHandler {
             guild.removeMember(member_remove.id);
             logger.debug("member bi kick co id la = "+ member_remove.id);
             
-            String content = userInfo.getName() + " has been removed " + memberRemoveInfo.getName();
+            String content = userInfo.getName() + " has removed " + memberRemoveInfo.getName();
             MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
+            guild.removeMessageRequestTroop(member_remove.id);
             guild.addMessage(mess);
             
             guild.saveModel(guild.id);

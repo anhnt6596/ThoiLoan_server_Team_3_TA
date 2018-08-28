@@ -867,7 +867,8 @@ MapInfoHandler extends BaseClientRequestHandler {
             System.out.println("======================= Khong get duoc Model BarrackQueueInfo ======================");
             return;
         }
-        BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
+        BarrackQueue newBarrackQueue = barrackQueueInfo.getBarrackQueueById(id);
+        int index = barrackQueueInfo.barrackQueueList.indexOf(newBarrackQueue);
         
         //VD: dang train co start time = 8h15'00
         //Luc upgrade co time = 8h 20'00
@@ -875,9 +876,7 @@ MapInfoHandler extends BaseClientRequestHandler {
         //Luc upgrade xong (finish time hoac quickfinish, hoac check) co time = 9h00
         //Dat lai startTime = 9h00 - 5'
         newBarrackQueue.startTime = System.currentTimeMillis() - newBarrackQueue.startTime;
-       
-        
-        barrackQueueInfo.barrackQueueMap.put(id, newBarrackQueue);
+        barrackQueueInfo.barrackQueueList.set(index, newBarrackQueue);
         try{
             barrackQueueInfo.saveModel(user.getId());
         }catch (Exception e) {
@@ -895,7 +894,8 @@ MapInfoHandler extends BaseClientRequestHandler {
             System.out.println("======================= Khong get duoc Model BarrackQueueInfo ======================");
             return;
         }
-        BarrackQueue newBarrackQueue = barrackQueueInfo.barrackQueueMap.get(id);
+        BarrackQueue newBarrackQueue = barrackQueueInfo.getBarrackQueueById(id);
+        int index = barrackQueueInfo.barrackQueueList.indexOf(newBarrackQueue);
         newBarrackQueue.setBarrackLevel(newBarrackQueue.getBarrackLevel() + 1);
         
         //Dat lai startTime cho barrack
@@ -916,8 +916,7 @@ MapInfoHandler extends BaseClientRequestHandler {
         } catch (JSONException e) {
             
         }
-        
-        barrackQueueInfo.barrackQueueMap.put(id, newBarrackQueue);
+        barrackQueueInfo.barrackQueueList.set(index, newBarrackQueue);
         try{
             barrackQueueInfo.saveModel(user.getId());
         }catch (Exception e) {
@@ -935,12 +934,12 @@ MapInfoHandler extends BaseClientRequestHandler {
             System.out.println("======================= Khong get duoc Model BarrackQueueInfo ======================");
             return;
         }
-        BarrackQueue newBarrackQueue = (BarrackQueue) barrackQueueInfo.barrackQueueMap.get(id);
+        BarrackQueue newBarrackQueue = barrackQueueInfo.getBarrackQueueById(id);
+        int index = barrackQueueInfo.barrackQueueList.indexOf(newBarrackQueue);
         
         //Dat lai startTime cho barrack
         newBarrackQueue.startTime = System.currentTimeMillis() - newBarrackQueue.startTime;
-           
-        barrackQueueInfo.barrackQueueMap.put(id, newBarrackQueue);
+        barrackQueueInfo.barrackQueueList.set(index, newBarrackQueue);
         try{
             barrackQueueInfo.saveModel(user.getId());
         }catch (Exception e) {
@@ -963,7 +962,8 @@ MapInfoHandler extends BaseClientRequestHandler {
             barrackQueueInfo = new BarrackQueueInfo();
         }
         BarrackQueue barrackQueue = new BarrackQueue(1);
-        barrackQueueInfo.barrackQueueMap.put(id, barrackQueue);
+        barrackQueue.setId(id);
+        barrackQueueInfo.barrackQueueList.add(barrackQueue);
         try {
             barrackQueueInfo.saveModel(user.getId());
         } catch (Exception e) {
