@@ -1,6 +1,6 @@
 <serverSettings>
   <socketAddresses>
-    <socket address="120.138.65.103" port="493" type="TCP"/>
+    <socket address="10.198.36.123" port="1101" type="TCP"/>
   </socketAddresses>
   <ipFilter>
     <addressBlackList>

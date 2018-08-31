@@ -294,7 +294,12 @@ public class GuildHandle extends BaseClientRequestHandler {
             guild.removeMember(member_remove.id);
             logger.debug("member bi kick co id la = "+ member_remove.id);
             
-            String content = userInfo.getName() + " has removed " + memberRemoveInfo.getName();
+            String content;
+            if(userInfo.getId() == member_remove.id){
+                content = memberRemoveInfo.getName() + " has left clan";
+            }else{
+                content = userInfo.getName() + " has removed " + memberRemoveInfo.getName();
+            }
             MessageGuild mess = new MessageGuild(ServerConstant.NORMAL, ServerConstant.ID_SYSTEM, content, System.currentTimeMillis(), 0, 0);
             guild.removeMessageRequestTroop(member_remove.id);
             guild.addMessage(mess);
