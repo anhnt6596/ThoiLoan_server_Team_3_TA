@@ -132,8 +132,9 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             //Can check xem loai linh can train da dc mo khoa hay chua
             
             TroopInBarrack troop = new TroopInBarrack(packet.typeTroop);
-            //check capacity
+            //check queue length
             if(barrackQueue.getTotalTroopCapacity() + troop.getHousingSpace() > barrackQueue.getQueueLength()){
+                System.out.println("======================= Vuot qua queue length ======================");
                 send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
                 return;
             }
@@ -157,6 +158,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             
             //check tai nguyen co du khong
             if(g > userInfo.getCoin()) {
+                System.out.println("======================= Khong du tai nguyen ======================");
                 send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);    
             }
 
@@ -217,8 +219,6 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             int levelTroop = userInfo.getTroopLevel(packet.typeTroop);
             int trainingElixir = troop.getTrainingElixir(levelTroop);
             int trainingDarkElixir = troop.getTrainingDarkElixir(levelTroop);
-            System.out.println("============================================ trainingElixir " + trainingElixir);
-            System.out.println("============================================ trainingDarkElixir " + trainingDarkElixir);
             
             //refund tai nguyen
             int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
@@ -226,8 +226,6 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
             
             userInfo.addResource(0,trainingElixir,trainingDarkElixir,0,gold_rq,elx_rq,dElx_rq);
-            System.out.println("============================================ Elixir User " + userInfo.elixir);
-            System.out.println("============================================ Dark Elixir User " + userInfo.darkElixir);
             userInfo.saveModel(user.getId());
 
             System.out.println("============================================ DUYYYY 2 ");
