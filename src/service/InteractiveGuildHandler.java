@@ -81,7 +81,6 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
     
     private void processRequestNewMessage(User user, RequestSendNewMessage packet) {
         try {
-            System.out.println("================== HERE 0 ===============");
             
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
             System.out.println("================== HERE 1 ===============");
@@ -163,15 +162,13 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
                     send(new ResponseGiveTroop(ServerConstant.VALIDATE, ServerConstant.ERROR, 0, null, 0, 0), user);
                     return;
                 }
-                System.out.println("================== HERE 1 ===============");
+                
                 int newAmount = amountGave.intValue() + 1;
                 guildBuildingGiver.userGotMap.put(packet.idUserGet, newAmount);
             } else {
-                System.out.println("================== HERE 2 ===============");
                 guildBuildingGiver.userGotMap.put(packet.idUserGet, 1);
             }
             
-            System.out.println("================== HERE 3 ===============");
             //Giam population troop cua sender
             this.decreaseAmountTroop(user.getId(), packet.troopType, 1);
             

@@ -416,6 +416,7 @@ public class ZPUserInfo extends DataModel {
     public void leftGuild(){
         this.is_in_guild = false;
         this.last_time_left_guild = System.currentTimeMillis();
+        this.last_time_ask_for_troops = 0;
     }
 
     public int getId() {

@@ -19,7 +19,7 @@ public class ResponseRequestTrainTroop extends BaseMsg {
         ByteBuffer bf = makeBuffer();
         
         bf.putShort(this.validate);
-        System.out.println("==================Response Cancel Train Troop: " + this.validate);
+        System.out.println("==================Response Request Train Troop: " + this.validate);
         return packBuffer(bf);
     }
 }

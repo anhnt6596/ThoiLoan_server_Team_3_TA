@@ -11,6 +11,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import model.TroopInfo;
@@ -23,106 +25,62 @@ import util.database.DataModel;
 import util.server.ServerConstant;
 
 public class BarrackQueue extends DataModel {
+    private int id;
     private int barrackLevel;           
-    private int amountItemInQueue;                //So loai troop dang train
-    private int totalTroopCapacity;               //Tong so capacity hien tai cua barrack <= queuelength
     public long startTime;
-    public Map<String, TroopInBarrack> troopListMap = new HashMap<String, TroopInBarrack>();
+    public List<TroopInBarrack> trainTroopList = new LinkedList<TroopInBarrack>();
 
-
-    public BarrackQueue(int barrackLevel) {
-        super();
+    public BarrackQueue(int id, int barrackLevel) {
+        this.setId(id);
         this.setBarrackLevel(barrackLevel);
-        amountItemInQueue = 0;
-        totalTroopCapacity = 0;
         startTime = 0L;
-        try {
-            initTroopList();
-        } catch (Exception e) {
-            System.out.println("======================= Khong the khoi tao troopList tu BarrackQueue ======================");
-        }
     }
-    
-    
-    public void doReset() {
-        amountItemInQueue = 0;
-        totalTroopCapacity = 0;
-        startTime = 0L;
-        
-        TroopInBarrack troopInBarrack;
-        for (String troopType : troopListMap.keySet()) {
-            troopInBarrack = troopListMap.get(troopType);
-            troopInBarrack.setAmount(0);
-            troopInBarrack.setCurrentPosition(-1);
-        }
-    }
-    
-    public void updateQueue(int whoDropId) {
-        TroopInBarrack troopInBarrack;
-        for (String troopType : troopListMap.keySet()) {
-            troopInBarrack = troopListMap.get(troopType);
-            if(troopInBarrack.getCurrentPosition() > whoDropId){
-                troopInBarrack.setCurrentPosition(troopInBarrack.getCurrentPosition() - 1);
-                if(troopInBarrack.getCurrentPosition() == 0){
-                    this.startTime = System.currentTimeMillis();
-                }
-            }
-        }
-    }
-    
-    
-    public TroopInBarrack getTroopByPosition(int position) {
-        TroopInBarrack troopInBarrack;
-        for (String troopType : troopListMap.keySet()) {
-            troopInBarrack = troopListMap.get(troopType);
-            if(troopInBarrack.getAmount() > 0 && troopInBarrack.getCurrentPosition() == position){
-                return troopInBarrack;
-            }
+
+    public TroopInBarrack getTroopInBarrackByName(String troopType) {
+        TroopInBarrack troop;
+        for(int i = 0; i < trainTroopList.size(); i++) {
+            troop = trainTroopList.get(i);
+            if(troop.getName().equals(troopType)) return troop;
         }
         return null;
     }
     
+    public void doReset() {
+        startTime = 0L;
+        trainTroopList.clear();
+    }
+    
+    public void updateQueue(int dropedPosition) {
+        trainTroopList.remove(dropedPosition);
+    }
+    
     public int getQueueLength() {
         try {
-            return ServerConstant.configBarrack.getJSONObject("BAR_1").getJSONObject(Integer.toString(barrackLevel)).getInt("queueLength");
+            return ServerConstant.configBarrack.getJSONObject(ServerConstant.BARRACK_TYPE).getJSONObject(Integer.toString(barrackLevel)).getInt("queueLength");
         } catch (JSONException e) {
             return 0;
         }
     }
     
-    public void initTroopList() {
-        //Dua vao level cua barrack ma put troop vao
-        try {
-            String troopType = ServerConstant.configBarrack.getJSONObject("BAR_1").getJSONObject(Integer.toString(barrackLevel)).getString("unlockedUnit");
-            TroopInBarrack troop = new TroopInBarrack(troopType);
-            troopListMap.put(troopType, troop);
-        } catch (JSONException e) {
-            
+    public int getTotalTroopCapacity() {
+        int total = 0;
+        for(int i = 0; i < trainTroopList.size(); i++) {
+            TroopInBarrack troop = trainTroopList.get(i);
+            total += troop.getAmount() * troop.getHousingSpace();
         }
-    }
-    
-    public void setBarrackLevel(int barrackLevel) {
-        this.barrackLevel = barrackLevel;
-    }
-
-    public int getBarrackLevel() {
-        return barrackLevel;
-    }
-    
-    public void setAmountItemInQueue(int amountItemInQueue) {
-        this.amountItemInQueue = amountItemInQueue;
+        return total;
     }
 
     public int getAmountItemInQueue() {
-        return amountItemInQueue;
+        return trainTroopList.size();
     }
 
-    public void setTotalTroopCapacity(int totalTroopCapacity) {
-        this.totalTroopCapacity = totalTroopCapacity;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    public int getTotalTroopCapacity() {
-        return totalTroopCapacity;
+    public int getId() {
+        return id;
     }
 
     public void setStartTime(long startTime) {
@@ -131,5 +89,13 @@ public class BarrackQueue extends DataModel {
 
     public long getStartTime() {
         return startTime;
+    }
+    
+    public void setBarrackLevel(int barrackLevel) {
+        this.barrackLevel = barrackLevel;
+    }
+
+    public int getBarrackLevel() {
+        return barrackLevel;
     }
 }

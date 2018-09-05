@@ -22,27 +22,25 @@ public class ResponseRequestBarrackQueueInfo extends BaseMsg {
     public byte[] createData() {
         BarrackQueue barrackQueue;
         ByteBuffer bf = makeBuffer();
-        int sizeBarrackQueueInfo = this.barrackQueueInfo.barrackQueueMap.size();
+        int sizeBarrackQueueInfo = barrackQueueInfo.barrackQueueList.size();
         //kich thuoc cua BarrackQueueInfo
         bf.putInt(sizeBarrackQueueInfo);
-        for (Integer idBarrack : this.barrackQueueInfo.barrackQueueMap.keySet()) {
-            barrackQueue = this.barrackQueueInfo.barrackQueueMap.get(idBarrack);
+        for(int j = 0; j < sizeBarrackQueueInfo; j++) {
+            barrackQueue = barrackQueueInfo.barrackQueueList.get(j);
             //id cua Barrack
-            bf.putInt(idBarrack);
-            bf.putInt(barrackQueue.getAmountItemInQueue());
-            bf.putInt(barrackQueue.getTotalTroopCapacity());
+            bf.putInt(barrackQueue.getId());
+            bf.putInt(barrackQueue.getBarrackLevel());
             bf.putLong(barrackQueue.startTime);
             
             //troopList
             TroopInBarrack troopInBarrack;
-            int sizeTroopList = barrackQueue.troopListMap.size();
+            int sizeTroopList = barrackQueue.trainTroopList.size();
             //kich thuoc cua TroopList
             bf.putInt(sizeTroopList);
-            for (String troopType : barrackQueue.troopListMap.keySet()) {
-                troopInBarrack = barrackQueue.troopListMap.get(troopType);
-                putStr(bf, troopType);
+            for(int i = 0; i < sizeTroopList; i++) {
+                troopInBarrack = barrackQueue.trainTroopList.get(i);
+                putStr(bf, troopInBarrack.getName());
                 bf.putInt(troopInBarrack.getAmount());
-                bf.putInt(troopInBarrack.getCurrentPosition());
             }
         }
         return packBuffer(bf);
