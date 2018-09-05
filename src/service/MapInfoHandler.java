@@ -128,11 +128,11 @@ MapInfoHandler extends BaseClientRequestHandler {
                     RequestCancleConstruction cancle_construction = new RequestCancleConstruction(dataCmd);
                     processRequestCancleConstruction(user,cancle_construction);
                     break;
-//                case CmdDefine.REMOVE_OBS:
-//                    logger.info("REMOVE_OBS");
-//                    RequestRemoveObs remove_obs = new RequestRemoveObs(dataCmd);
-//                    processRequestRemoveObs(user,remove_obs);
-//                    break;
+                case CmdDefine.REMOVE_OBS:
+                    logger.info("REMOVE_OBS");
+                    RequestRemoveObs remove_obs = new RequestRemoveObs(dataCmd);
+                    processRequestRemoveObs(user,remove_obs);
+                    break;
                 
                 case CmdDefine.QUICK_FINISH:
                     logger.info("QUICK_FINISH ");
@@ -623,19 +623,14 @@ MapInfoHandler extends BaseClientRequestHandler {
             g+=darkElixirToG(darkElixir_bd-user.darkElixir);                    
         };
         
-//        int coin_bd = getCoin(type,level);
-//        System.out.println("check Resource, coin_bd  = "+ coin_bd);
-//        System.out.println("check Resource, user.coin  = "+ user.coin);
-//        
-//        if (user.coin < coin_bd){
-//            g+=coin_bd-user.coin; 
-//        };
-    System.out.println("so coin de bu vao cac tai nguyen khac la = "+g);
+        System.out.println("so coin de bu vao cac tai nguyen khac la = "+g);
         return g;
     }
 
     public int getGold(String type, int level){
         int g = 0;
+        System.out.println("type 788888888888888 = "+ type);
+        System.out.println("level 788888888888888 = "+ level);
         try {
             
             JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
@@ -729,14 +724,18 @@ MapInfoHandler extends BaseClientRequestHandler {
             mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
             if (mapInfo == null) {
                 //send response error
+                send(new ResponseRequestFinishTimeConstruction(ServerConstant.ERROR), user);
+                return;
             }  
             Building building = mapInfo.listBuilding.get(finish_time.id);
             if (building.status.equals(ServerConstant.destroy_status)){
                 System.out.println("Nha nay da huy");
+                send(new ResponseRequestFinishTimeConstruction(ServerConstant.ERROR), user);
                 return;
             }
             if (building.type.equals("BDH_1")){
                 System.out.println("Nha nay la nha tho xay ma` ma'");
+                send(new ResponseRequestFinishTimeConstruction(ServerConstant.ERROR), user);
                 return;
             }
             long time_cur = System.currentTimeMillis();
@@ -845,11 +844,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 }
                 mapInfo.listBuilding.get(quick_finish.id).setStatus(ServerConstant.complete_status);
                 mapInfo.listBuilding.get(quick_finish.id).setStartTime();
-                mapInfo.print();
-                if (building.type.equals("CLC_1") && building.level ==0){
-                        GuildBuilding guildBuilding = new GuildBuilding();
-                        guildBuilding.saveModel(user.getId());
-                }
+                mapInfo.print();                
                 
                 mapInfo.saveModel(user.getId());
                 userInfo.saveModel(user.getId());
@@ -1058,7 +1053,8 @@ MapInfoHandler extends BaseClientRequestHandler {
             Obs obs = mapInfo.listObs.get(remove_obs.id);
             logger.debug(obs.type+" " + obs.status+ obs.id);
             logger.debug("id obs duoc truyen len la: "+ remove_obs.id);
-            if (obs.status.equals(ServerConstant.destroy_status)){                    
+            if (obs.status.equals(ServerConstant.destroy_status)){    
+                    logger.info("Obstacle da duoc loai bo tu truoc");
                     send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
                     return;
                 }
@@ -1067,22 +1063,80 @@ MapInfoHandler extends BaseClientRequestHandler {
             exchange_resource = checkResource(userInfo,(obs.type),1);
             int coin = getCoin(obs.type,obs.level);
             if ((exchange_resource+coin>userInfo.coin)){ 
+                logger.info("User khong du tai nguyen de don cay");
                 send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
                 return;
             }
             
             
-            int gold = obs.getGtoRemove(ServerConstant.gold_resource);
-            int elixir = obs.getGtoRemove(ServerConstant.elixir_resource);
-            int darkElixir = obs.getGtoRemove(ServerConstant.darkElixir_resource);
+            
+            
 //            int coin = obs.getGtoRemove(ServerConstant.coin_resource);
             
-            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
-            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
-            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
+            if (exchange_resource<userInfo.coin){ 
+                //add obs to pending
+                int gold = obs.getGtoRemove(ServerConstant.gold_resource);
+                int elixir = obs.getGtoRemove(ServerConstant.elixir_resource);
+                int darkElixir = obs.getGtoRemove(ServerConstant.darkElixir_resource);
+                //Xet truong hop dac biet
+                
+                System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
+                
+                // kiem tra tho xay
+                //                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
+                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay    
+                    System.out.println("CAN GIAI PHONG THO XAY");                    
+                    //get resource cua nha                    
+                    int g_release = mapInfo.getGToReleaseBuilder();
+                    System.out.println("So G de giai phong la "+ g_release);
+        //                    check_resource = check_resource +g;
+                    if (userInfo.coin < exchange_resource+g_release ){ //neu khong du tien mua tho xay
+                        //linhrafa --Neu false
+                        //tra ve false
+                        logger.warn("Khong du tien de giai phong tho xay va chat cay");
+                        send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+                    }
+                    else {
+                        //giai phong 1 ngoi nha pending
+                        
+                        mapInfo.releaseBuilding(user); 
+                        mapInfo.print();
+                        
+                        //mapArray = mapInfo.getMapArray();
+                        
+                        userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+g_release, obs.type, true);
+                    }
+                } 
+                else { //neu da du tho xay
+                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource, obs.type, true);
+                }
+                
+                //thuong resource sau khi bo cay                
+                int  elixir_reward = obs.getElixirReward();
+                int  darkElixir_reward = obs.getDarkElixirReward();
+                
+                
+                int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
+                int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
+                int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
+                
+                
+                userInfo.addResource(0,elixir_reward,darkElixir_reward,0,gold_rq,elx_rq,dElx_rq);
+                
+                userInfo.saveModel(user.getId());
+                mapInfo.saveModel(user.getId());
+                //                        logger.info("in ra khi add construction");
+                //                        mapInfo.print();
+                send(new ResponseRequestRemoveObs(ServerConstant.SUCCESS), user);
+                
+            }
+            else {
+                //linhrafa --Neu false
+                //tra ve false
+                send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+            } 
             
             
-            userInfo.addResource(gold,elixir,darkElixir,coin,gold_rq,elx_rq,dElx_rq);
                       
             
             mapInfo.saveModel(user.getId());
@@ -1093,6 +1147,7 @@ MapInfoHandler extends BaseClientRequestHandler {
             
         }
     }
+        
 
     private void processRequestGetHarvestInfo(User user, RequestGetHarvestInfo harvest_info) {
         }
@@ -1233,13 +1288,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 return false;
             }
             logger_move.debug("Map Info truoc khi move");
-            //mapInfo.print();
-            Building building = mapInfo.listBuilding.get(id);
-//            if (building.type.equals("CLC_1") && building.level==0){
-//                    logger.debug("Nha Bang hoi chua duoc xay dung, khong the di chuyen!");
-//                    send(new ResponseRequestMoveConstruction(ServerConstant.ERROR), user);
-//                    return;
-//                }
+            //mapInfo.print();            
             MapArray mapArray = new MapArray();
             mapArray = mapInfo.getMapArray();
             //System.out.println("VI TRI CU="+mapInfo.listBuilding.get(move_construction.id).posX+" "+mapInfo.listBuilding.get(move_construction.id).posY);

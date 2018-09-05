@@ -22,8 +22,8 @@ public class RequestRemoveObs extends BaseCmd{
     public void unpackData() {
         ByteBuffer bf = makeBuffer();
         try {
-            id = readInt(bf);
-            id = id - 5000;
+            this.id = readInt(bf);
+            this.id = id - 5000;
            
         }catch (Exception e) {
             CommonHandle.writeErrLog(e);}

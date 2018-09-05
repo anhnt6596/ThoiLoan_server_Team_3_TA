@@ -235,6 +235,12 @@ public class MapInfo extends DataModel{
                 kq++;
             }
         }
+        for (Obs obs : this.listObs){
+            if (obs.status.equals("pending")){
+                kq++;
+            }
+            
+        }
         System.out.println("check status - so tho xay dang lam la:"+kq);
         return kq;
     }
@@ -252,9 +258,21 @@ public class MapInfo extends DataModel{
                     kq = Math.min(kq,building.getTimeConLai(building.status));
                 }
             }
-            System.out.println("kq nha giai phong = "+kq);
+            
         }
-        
+        for (Obs obs : this.listObs){
+            if (obs.status.equals("pending")){
+                if (dd==0){
+                    dd++;
+                    kq = obs.getTimeConLai();
+                }
+                else {
+                    kq = Math.min(kq,obs.getTimeConLai());
+                }
+            }
+            
+        }
+        System.out.println("kq nha giai phong = "+kq);
         if (kq ==999999999) {
             return -1;
         }
@@ -289,6 +307,7 @@ public class MapInfo extends DataModel{
     public void releaseBuilding(User user) {
         System.out.println(">>>>>releaseBuilding");
         long time = 999999999;
+        String type = "";
         int kq =-1;
         for (Building building : this.listBuilding){
                 if (building.status.equals("pending")|| building.status.equals("upgrade")){
@@ -296,45 +315,70 @@ public class MapInfo extends DataModel{
                     if (time>building.getTimeConLai(building.status)){
                         time = building.getTimeConLai(building.status);
                         kq = building.id;
+                        type = "building";
                     }
                 }
         }
-        System.out.println(".Building ddc release la: "+ this.listBuilding.get(kq).type+ "time_con_lai= "+ time);
-        if (this.listBuilding.get(kq).getStatus().equals("upgrade")){
-            this.listBuilding.get(kq).level = this.listBuilding.get(kq).level +1;
-            this.listBuilding.get(kq).setStatus("complete");
-            
-            if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
-                System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
-                this.changeBarrackQueueInfoWhenBarrackUpgraded(user, this.listBuilding.get(kq).id);
-            }
-        } 
-        else if (this.listBuilding.get(kq).getStatus().equals("pending")){
-            this.listBuilding.get(kq).setStatus("complete");
-            
-            if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
-                System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
-                this.changeBarrackQueueInfoWhenBarrackBuilt(user, this.listBuilding.get(kq).id);
+        
+        for (Obs obs : this.listObs){
+                if (obs.status.equals("pending")){
+                    //linhrafa neu dang upgrade thi tang level
+                    if (time>obs.getTimeConLai()){
+                        time = obs.getTimeConLai();
+                        kq = obs.id;
+                        type = "obs";
+                    }
+                }
+        }
+        
+        if (type.equals("obs")){
+            System.out.println("Obs dc release la: "+ this.listObs.get(kq).type+ "time_con_lai= "+ time);            
+            if (this.listObs.get(kq).getStatus().equals("pending")){
+                this.listObs.get(kq).setStatus(ServerConstant.destroy_status);
             }
         }
+        else {
+            System.out.println("Building dc release la: "+ this.listBuilding.get(kq).type+ "time_con_lai= "+ time);
+            if (this.listBuilding.get(kq).getStatus().equals("upgrade")){
+                this.listBuilding.get(kq).level = this.listBuilding.get(kq).level +1;
+                this.listBuilding.get(kq).setStatus("complete");
+                
+                if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
+                    //System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
+                    this.changeBarrackQueueInfoWhenBarrackUpgraded(user, this.listBuilding.get(kq).id);
+                }
+            } 
+            else if (this.listBuilding.get(kq).getStatus().equals("pending")){
+                this.listBuilding.get(kq).setStatus("complete");
+                
+                if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
+                    //System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
+                    this.changeBarrackQueueInfoWhenBarrackBuilt(user, this.listBuilding.get(kq).id);
+                }
+            }
+        }
+        
     }
 
     public void checkStatus(User user) {
+        long time_cur ;
+        long distance ;
+        long time_xay ;
         //System.out.println("***********checkbuilding **********************");
         for (Building building : this.listBuilding){
             if ( !building.status.equals(ServerConstant.destroy_status)){
                 
-                long time_cur = System.currentTimeMillis();
-                long distance = time_cur - building.timeStart;
-                long time_xay = building.getTimeBuild(building.status);
+                time_cur = System.currentTimeMillis();
+                distance = time_cur - building.timeStart;
+                time_xay = building.getTimeBuild(building.status);
                 
-                System.out.println("distance = "+ distance+", time_can_xay="+time_xay);
+                //System.out.println("distance = "+ distance+", time_can_xay="+time_xay);
                 
                 if ((!building.status.equals("complete")) &&(distance > time_xay) && building.timeStart!=-1){
                     if (building.status.equals("upgrade")){
                         //Check if BAR_1
                         if(building.type.equals("BAR_1") && user != null){
-                            System.out.println("==============================CHECK STATUS FINISH UPGRADE BAR_1===========================");
+                            //System.out.println("==============================CHECK STATUS FINISH UPGRADE BAR_1===========================");
                             this.changeBarrackQueueInfoWhenBarrackUpgraded(user, building.id);
                         }
                         
@@ -342,7 +386,7 @@ public class MapInfo extends DataModel{
                     }else{
                         //Check if BAR_1
                         if(building.type.equals("BAR_1") && user != null){
-                            System.out.println("==============================CHECK STATUS FINISH BUILD BAR_1===========================");
+                            //System.out.println("==============================CHECK STATUS FINISH BUILD BAR_1===========================");
                             this.changeBarrackQueueInfoWhenBarrackBuilt(user, building.id);
                         }
                     }
@@ -350,6 +394,17 @@ public class MapInfo extends DataModel{
                 }
             }
             //System.out.println(building.type+" "+"time start: "+building.timeStart+" "+"distance: "+distance+"status "+building.status);
+        }
+        
+        for (Obs obs : this.listObs){
+                if (!obs.status.equals(ServerConstant.destroy_status)){
+                    time_cur = System.currentTimeMillis();
+                    distance = time_cur - obs.timeStart;
+                    time_xay = obs.getTimeBuild();
+                    if ((!obs.status.equals("complete")) &&(distance > time_xay) && obs.timeStart!=-1){
+                    }
+                    obs.setStatus(ServerConstant.destroy_status);
+                }
         }
     }
     

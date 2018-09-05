@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 
+import java.util.Random;
+
 import util.database.DataModel;
 
 import util.server.ServerConstant;
@@ -61,7 +63,10 @@ public class Guild extends DataModel implements Comparable<Guild> {
         this.exp = 0;
         this.uranium = 0;
         this.status = _status;
-        this.danh_vong = 0;
+        //this.danh_vong = 0;
+        Random rand = new Random();
+        this.danh_vong = rand.nextInt(5000) + 1;
+        
         this.danh_vong_require = _danh_vong_require;
         this.description = _description;
         this.logo_id = _logo_id;

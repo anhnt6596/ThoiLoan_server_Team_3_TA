@@ -1,5 +1,7 @@
 package model;
 
+import bitzero.server.entities.User;
+
 import bitzero.util.common.business.CommonHandle;
 
 
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import util.database.DataModel;
@@ -239,6 +242,90 @@ public class ZPUserInfo extends DataModel {
         }
         return level;
     }
+    
+    public int getTotalCapacityAMCs() {
+        int total = 0;
+        MapInfo mapInfo;
+        try {
+            mapInfo = (MapInfo) MapInfo.getModel(this.getId(), MapInfo.class);
+        } catch (Exception e) {
+            System.out.println("=============== KHONG GET DC MAP INFO =================");
+            return 0;
+        }
+        
+        JSONObject amcConfig;
+        try {
+            amcConfig = ServerConstant.configArmyCamp.getJSONObject("AMC_1");
+        } catch (JSONException e) {
+            System.out.println("=============== KHONG GET DC ARMY CONFIG =================");
+            return 0;
+        }
+
+        List<Building> listBuilding = mapInfo.listBuilding;
+        Iterator<Building> i = listBuilding.iterator();
+        while (i.hasNext()) {
+            Building build = i.next();
+
+            if((build.status.equals("complete") || build.status.equals("upgrade")) && (build.type.equals("AMC_1"))){
+                int capacity;
+
+                try {
+                    capacity = amcConfig.getJSONObject(Integer.toString(build.level)).getInt("capacity");
+                    System.out.println("=============== capacity:  " + capacity);
+                } catch (JSONException e) {
+                    return 0;
+                }
+                total += capacity;
+            }
+        }
+        return total;
+    }
+    
+    public int getCurrentCapacityTroop() {
+        int total = 0;
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return 0;
+        }
+        
+        JSONObject troopBaseConfig = ServerConstant.configTroopBase;
+        
+        int space;
+        Troop troop;
+        for (String troopType : troopInfo.troopMap.keySet()) {
+            troop = troopInfo.troopMap.get(troopType);
+            try {
+                space = troopBaseConfig.getJSONObject(troopType).getInt("housingSpace");
+            } catch (JSONException e) {
+                return 0;
+            }
+            total += space * troop.population;
+        }
+        
+        return total;
+    }
+
+    public void increaseAmountTroop(String typeTroop, int amount) {
+        System.out.println("Linh " + typeTroop + " tang " + amount);
+        
+        //Tang so luong loai troop nay
+        TroopInfo troopInfo;
+        try {
+            troopInfo = (TroopInfo) TroopInfo.getModel(this.getId(), TroopInfo.class);
+        } catch (Exception e) {
+            return;
+        }
+        
+        Troop troopObj = troopInfo.troopMap.get(typeTroop);
+        troopObj.population += amount;
+        troopInfo.troopMap.put(typeTroop, troopObj);
+        try {
+            troopInfo.saveModel(this.getId());
+        } catch (Exception e) {
+        }
+    }
 
     public void reduceUserResources(int gold, int elixir, int darkElixir, int coin, String type, boolean isAdd ){
         //tru gold
@@ -248,7 +335,7 @@ public class ZPUserInfo extends DataModel {
         }
         else {
             this.gold = this.gold - gold;
-            System.out.println("gold bi tru di " + gold+ ", user con lai +"+ this.gold+" gold");
+            System.out.println("gold bi tru di " + gold+ ", user con lai ="+ this.gold+" gold");
         }
         //tru elixir
         if (this.elixir < elixir){
@@ -258,7 +345,7 @@ public class ZPUserInfo extends DataModel {
         }
         else {
             this.elixir = this.elixir - elixir;
-            System.out.println("elixir bi tru di " + elixir + ", user con lai +"+ this.elixir+" elixir");
+            System.out.println("elixir bi tru di " + elixir + ", user con lai = "+ this.elixir+" elixir");
         }
         if (this.darkElixir < darkElixir){
             
@@ -267,11 +354,11 @@ public class ZPUserInfo extends DataModel {
         }
         else {
             this.darkElixir = this.darkElixir - darkElixir;
-            System.out.println("darkElixir bi tru di " + darkElixir + ", user con lai +"+ this.darkElixir+" darkElixir");
+            System.out.println("darkElixir bi tru di " + darkElixir + ", user con lai ="+ this.darkElixir+" darkElixir");
         }
         
         this.coin = this.coin - coin;
-        System.out.println("coin bi tru di " + coin + ", user con lai +"+ this.coin+" coin");
+        System.out.println("coin bi tru di " + coin + ", user con lai ="+ this.coin+" coin");
         
         if (type.equals("BDH_1") ){
             this.builderNumber = this.builderNumber + 1;
@@ -295,7 +382,31 @@ public class ZPUserInfo extends DataModel {
         }
         this.coin = this.coin + _coin;
     }
-    
+
+    public void setLast_time_left_guild(long last_time_left_guild) {
+        this.last_time_left_guild = last_time_left_guild;
+    }
+
+    public long getLast_time_left_guild() {
+        return last_time_left_guild;
+    }
+
+    public void setDonate_troop(short donate_troop) {
+        this.donate_troop = donate_troop;
+    }
+
+    public short getDonate_troop() {
+        return donate_troop;
+    }
+
+    public void setRequest_troop(short request_troop) {
+        this.request_troop = request_troop;
+    }
+
+    public short getRequest_troop() {
+        return request_troop;
+    }
+
     public void addGuildInfo(int _id_guild, String _name_guild, int _id_logo_guild){
         this.is_in_guild = true;
         this.id_guild = _id_guild;
@@ -309,5 +420,13 @@ public class ZPUserInfo extends DataModel {
 
     public int getId() {
         return this.id;
+    }
+
+    public boolean canJoinGuild() {
+        if (System.currentTimeMillis() - this.getLast_time_left_guild() >= 7200000) // 2 tieng
+        {
+            return true;
+        }
+        return false;
     }
 }

@@ -559,8 +559,8 @@ public class ServerConstant {
             ServerConstant.config.put("DEF_12", configDefence.getJSONObject("DEF_12"));
             ServerConstant.config.put("DEF_13", configDefence.getJSONObject("DEF_13"));
             
-            ServerConstant.config.put("WAL_1", configDefence.getJSONObject("WAL_1"));
-            ServerConstant.config.put("CLC_1", configDefence.getJSONObject("CLC_1"));
+            ServerConstant.config.put("WAL_1", configWall.getJSONObject("WAL_1"));
+            ServerConstant.config.put("CLC_1", configClanCastle.getJSONObject("CLC_1"));
             
             Iterator<?> keys = ServerConstant.configObstacle.keys();
             while (keys.hasNext()){

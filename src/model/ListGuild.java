@@ -14,6 +14,8 @@ import java.util.Queue;
 
 import util.database.DataModel;
 
+import util.server.ServerConstant;
+
 public class ListGuild extends DataModel{
     public int numberOfGuild = 0;
     public Map <Integer, String> list_guild = new HashMap<Integer, String>();
@@ -35,9 +37,11 @@ public class ListGuild extends DataModel{
             if (checkSubString(string,guild_name)){
                 try {
                     Guild suggest_guild = (Guild) Guild.getModel(guild_id, Guild.class);
-                    boolean offer = queue.offer(suggest_guild);
-                    if (!offer){
-                        return queue;
+                    if (!suggest_guild.getStatus().equals(ServerConstant.guild_status_close)) { //neu status cua bang hoi khong dong'
+                        boolean offer = queue.offer(suggest_guild);
+                        if (!offer){
+                            return queue;
+                        }
                     }
                 } catch (Exception e) {
                 }

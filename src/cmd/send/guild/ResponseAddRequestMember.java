@@ -10,15 +10,13 @@ import model.ZPUserInfo;
 
 import util.server.ServerConstant;
 
-public class ResponseAddRequestMember extends BaseMsg {
-    private short type;
+public class ResponseAddRequestMember extends BaseMsg {    
     private ZPUserInfo member;
     private short validate;
     
 
-    public ResponseAddRequestMember(short type, ZPUserInfo member, short validate) {
-        super(CmdDefine.ADD_REQUEST_MEMBER);
-        this.type = type;
+    public ResponseAddRequestMember(short validate, ZPUserInfo member) {
+        super(CmdDefine.ADD_REQUEST_MEMBER);        
         this.member = member;
         this.validate = validate;
     }  
