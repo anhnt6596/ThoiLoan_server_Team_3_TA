@@ -398,4 +398,35 @@ public class ZPUserInfo extends DataModel {
     public int getId() {
         return this.id;
     }
+    
+    private int goldToG(int gold_bd) {
+        return gold_bd;
+    }
+        
+    private int elixirToG(int elixir_bd) {
+        return elixir_bd;
+    }
+
+    private int darkElixirToG(int darkElixir_bd) {
+        return darkElixir_bd;
+    }
+        
+    public int checkResource(int gold, int elixir, int darkElixir) {
+        int g = 0;
+        
+        if (this.gold < gold){
+            g += goldToG(gold - this.gold);                    
+        };
+        
+        if (this.elixir < elixir){
+            g += elixirToG(elixir - this.elixir);                    
+        };
+        
+        if (this.darkElixir < darkElixir){
+            g += darkElixirToG(darkElixir - this.darkElixir);                    
+        };
+        
+        return g;
+    }
+    
 }
