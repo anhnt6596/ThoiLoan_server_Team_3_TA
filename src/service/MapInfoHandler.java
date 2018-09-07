@@ -143,12 +143,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                     //System.out.println("GET_SERVER_TIME");
                     RequestGetServerTime server_time = new RequestGetServerTime(dataCmd);
                     processGetServerTime(user,server_time);
-                    break;
-                case CmdDefine.GET_HARVEST_INFO:
-                    //System.out.println("GET_SERVER_TIME");
-                    RequestGetHarvestInfo harvest_info = new RequestGetHarvestInfo(dataCmd);
-                    processRequestGetHarvestInfo(user,harvest_info);
-                    break;
+                    break;                
                 case CmdDefine.DO_HARVEST:
                         //System.out.println("GET_SERVER_TIME");
                         RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
@@ -1064,52 +1059,50 @@ MapInfoHandler extends BaseClientRequestHandler {
     }
         
 
-    private void processRequestGetHarvestInfo(User user, RequestGetHarvestInfo harvest_info) {
-        }
-         private void processDoHarvest(User user, RequestDoHarvest do_harvest) {
-            logger.debug("Thu hoach mo id "+do_harvest.id);
-            
-            try {
-                MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
-                if (mapInfo == null) {
-                    //send response error
-                    logger.info("Khong ton tai mapInfo");
-                    send(new ResponseDoHarvest(ServerConstant.ERROR), user);
-                    return;
-                }
-                
-                ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
-                if (userInfo == null) {
-                   ////send response error
-                    logger.debug("khong ton tai user");
-                   send(new ResponseDoHarvest(ServerConstant.ERROR), user);
-                   return;
-                }
-                
-                Building building = mapInfo.listBuilding.get(do_harvest.id);
-                logger.debug("Mo "+building.type+" duoc thu hoach, trang thai: " + building.status);
-                if (!building.type.equals("RES_1") && !building.type.equals("RES_2") && !building.type.equals("RES_3")){
-                        logger.debug("Khong phai nha resource");
-                        send(new ResponseDoHarvest(ServerConstant.ERROR), user);
-                        return;
-                    }
-                if (!building.status.equals(ServerConstant.complete_status)){
-                    logger.debug("Nha resource khong trong trang thai complete de co the xay duoc");
-                    send(new ResponseDoHarvest(ServerConstant.ERROR), user);
-                    return;
-                }
-                
-                doHarvest(user, do_harvest.id);
-                
-                send(new ResponseDoHarvest(ServerConstant.SUCCESS), user);
-                
-            } catch (Exception e) {
-                logger.info("Khong thu hoach duoc");
-                send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+    private void processDoHarvest(User user, RequestDoHarvest do_harvest) {
+        logger.debug("Thu hoach mo id "+do_harvest.id);
+        
+        try {
+            MapInfo mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {
+                //send response error
+                logger.info("Khong ton tai mapInfo");
+                send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
+                return;
             }
             
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+                logger.debug("khong ton tai user");
+                send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
+               return;
+            }
             
+            Building building = mapInfo.listBuilding.get(do_harvest.id);
+            logger.debug("Mo "+building.type+" duoc thu hoach, trang thai: " + building.status);
+            if (!building.type.equals("RES_1") && !building.type.equals("RES_2") && !building.type.equals("RES_3")){
+                    logger.debug("Khong phai nha resource");
+                    send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
+                    return;
+                }
+            if (!building.status.equals(ServerConstant.complete_status)){
+                logger.debug("Nha resource khong trong trang thai complete de co the xay duoc");
+                send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
+                return;
+            }
+            
+            int productivity = doHarvest(user, do_harvest.id);
+            
+            send(new ResponseDoHarvest(ServerConstant.SUCCESS, building.type, productivity ), user);
+            
+        } catch (Exception e) {
+            logger.info("Khong thu hoach duoc");
+            send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
         }
+        
+        
+    }
          private int timeToProductivity(String type, int level, long time_sanxuat) {
             //Ham chuyen doi thoi gian (Milisecond) toi san luong
             try {
@@ -1139,7 +1132,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 return -1;
             }
         }
-         private void doHarvest(User user, int id) {
+         private int doHarvest(User user, int id) {
             ZPUserInfo userInfo;
             try {
                 userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
@@ -1175,8 +1168,10 @@ MapInfoHandler extends BaseClientRequestHandler {
                 logger.info("Add them gold, elixir, dark, coin= "+gold+" "+elixir+" "+darkElixir+" "+coin);
                 userInfo.saveModel(user.getId());
                 mapInfo.saveModel(user.getId());
+                return productivity;
                 
             } catch (Exception e) {
+                return 0;
             }
             
         }

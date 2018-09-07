@@ -55,14 +55,14 @@ import org.slf4j.LoggerFactory;
             if (mapInfo == null) {
                 //send response error
                 logger.info("Khong ton tai mapInfo");
-                send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+                send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
                 return;
             }
             
             
         } catch (Exception e) {
             logger.info("Khong thu hoach duoc");
-            send(new ResponseDoHarvest(ServerConstant.ERROR), user);
+            send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
         }
          
     }

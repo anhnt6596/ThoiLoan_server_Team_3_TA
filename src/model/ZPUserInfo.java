@@ -388,7 +388,7 @@ public class ZPUserInfo extends DataModel {
     }
 
     public long getLast_time_left_guild() {
-        return last_time_left_guild;
+        return this.last_time_left_guild;
     }
 
     public void setDonate_troop(short donate_troop) {
@@ -417,6 +417,7 @@ public class ZPUserInfo extends DataModel {
         this.is_in_guild = false;
         this.last_time_left_guild = System.currentTimeMillis();
         this.last_time_ask_for_troops = 0;
+        System.out.println("Nguoi vua ra khoi bang, id = "+this.id+", time roi bang = "+ this.last_time_left_guild);
     }
 
     public int getId() {
@@ -424,6 +425,9 @@ public class ZPUserInfo extends DataModel {
     }
 
     public boolean canJoinGuild() {
+        System.out.println("Thio gian hien tai: " + System.currentTimeMillis());
+        System.out.println("Thio gian roi bang truoc do: " + this.getLast_time_left_guild());
+        System.out.println("Thio gian chenh nhau: " + (System.currentTimeMillis() - this.getLast_time_left_guild()));
         if (System.currentTimeMillis() - this.getLast_time_left_guild() >= 7200000) // 2 tieng
         {
             return true;

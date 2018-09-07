@@ -319,8 +319,7 @@ public class MapInfo extends DataModel{
                     }
                 }
         }
-<<<<<<< HEAD
-        
+
         for (Obs obs : this.listObs){
                 if (obs.status.equals("pending")){
                     //linhrafa neu dang upgrade thi tang level
@@ -339,49 +338,33 @@ public class MapInfo extends DataModel{
             }
         }
         else {
-            System.out.println("Building dc release la: "+ this.listBuilding.get(kq).type+ "time_con_lai= "+ time);
+
+            System.out.println(".Building ddc release la: "+ this.listBuilding.get(kq).type+ "time_con_lai= "+ time);
             if (this.listBuilding.get(kq).getStatus().equals("upgrade")){
                 this.listBuilding.get(kq).level = this.listBuilding.get(kq).level +1;
                 this.listBuilding.get(kq).setStatus("complete");
                 
-                if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
-                    //System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
-                    this.changeBarrackQueueInfoWhenBarrackUpgraded(user, this.listBuilding.get(kq).id);
+                if(this.listBuilding.get(kq).type.equals(ServerConstant.BARRACK_TYPE) && user != null){
+                    System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
+                    try {
+                        BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+                        barrackQueueInfo.updateWhenBarrackUpgraded(this.listBuilding.get(kq).id);
+                        barrackQueueInfo.saveModel(user.getId());
+                    } catch (Exception e) {
+                    }
                 }
             } 
             else if (this.listBuilding.get(kq).getStatus().equals("pending")){
                 this.listBuilding.get(kq).setStatus("complete");
                 
-                if(this.listBuilding.get(kq).type.equals("BAR_1") && user != null){
-                    //System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
-                    this.changeBarrackQueueInfoWhenBarrackBuilt(user, this.listBuilding.get(kq).id);
-=======
-        System.out.println(".Building ddc release la: "+ this.listBuilding.get(kq).type+ "time_con_lai= "+ time);
-        if (this.listBuilding.get(kq).getStatus().equals("upgrade")){
-            this.listBuilding.get(kq).level = this.listBuilding.get(kq).level +1;
-            this.listBuilding.get(kq).setStatus("complete");
-            
-            if(this.listBuilding.get(kq).type.equals(ServerConstant.BARRACK_TYPE) && user != null){
-                System.out.println("==============================RELEASE FINISH UPGRADE BAR_1===========================");
-                try {
-                    BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
-                    barrackQueueInfo.updateWhenBarrackUpgraded(this.listBuilding.get(kq).id);
-                    barrackQueueInfo.saveModel(user.getId());
-                } catch (Exception e) {
-                }
-            }
-        } 
-        else if (this.listBuilding.get(kq).getStatus().equals("pending")){
-            this.listBuilding.get(kq).setStatus("complete");
-            
-            if(this.listBuilding.get(kq).type.equals(ServerConstant.BARRACK_TYPE) && user != null){
-                System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
-                try {
-                    BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
-                    barrackQueueInfo.updateWhenBarrackBuilt(this.listBuilding.get(kq).id);
-                    barrackQueueInfo.saveModel(user.getId());
-                } catch (Exception e) {
->>>>>>> 000319b59663f860d5d3436a9f1866f12064a5c5
+                if(this.listBuilding.get(kq).type.equals(ServerConstant.BARRACK_TYPE) && user != null){
+                    System.out.println("==============================RELEASE FINISH BUILD BAR_1===========================");
+                    try {
+                        BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+                        barrackQueueInfo.updateWhenBarrackBuilt(this.listBuilding.get(kq).id);
+                        barrackQueueInfo.saveModel(user.getId());
+                    } catch (Exception e) {
+                    }
                 }
             }
         }
@@ -405,11 +388,6 @@ public class MapInfo extends DataModel{
                 if ((!building.status.equals("complete")) &&(distance > time_xay) && building.timeStart!=-1){
                     if (building.status.equals("upgrade")){
                         //Check if BAR_1
-<<<<<<< HEAD
-                        if(building.type.equals("BAR_1") && user != null){
-                            //System.out.println("==============================CHECK STATUS FINISH UPGRADE BAR_1===========================");
-                            this.changeBarrackQueueInfoWhenBarrackUpgraded(user, building.id);
-=======
                         if(building.type.equals(ServerConstant.BARRACK_TYPE) && user != null){
                             System.out.println("==============================CHECK STATUS FINISH UPGRADE BAR_1===========================");
                             try {
@@ -418,17 +396,11 @@ public class MapInfo extends DataModel{
                                 barrackQueueInfo.saveModel(user.getId());
                             } catch (Exception e) {
                             }
->>>>>>> 000319b59663f860d5d3436a9f1866f12064a5c5
                         }
                         
                         building.level ++;
                     }else{
                         //Check if BAR_1
-<<<<<<< HEAD
-                        if(building.type.equals("BAR_1") && user != null){
-                            //System.out.println("==============================CHECK STATUS FINISH BUILD BAR_1===========================");
-                            this.changeBarrackQueueInfoWhenBarrackBuilt(user, building.id);
-=======
                         if(building.type.equals(ServerConstant.BARRACK_TYPE) && user != null){
                             System.out.println("==============================CHECK STATUS FINISH BUILD BAR_1===========================");
                             try {
@@ -437,7 +409,6 @@ public class MapInfo extends DataModel{
                                 barrackQueueInfo.saveModel(user.getId());
                             } catch (Exception e) {
                             }
->>>>>>> 000319b59663f860d5d3436a9f1866f12064a5c5
                         }
                     }
                     building.setStatus("complete");

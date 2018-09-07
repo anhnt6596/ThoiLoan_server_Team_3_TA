@@ -335,6 +335,12 @@ public class GuildHandle extends BaseClientRequestHandler {
                 send(new ResponseAddRequestMember(ServerConstant.ERROR,memberInfo), user);
                return;
             }
+            //neu member da co bang roi thi khong duoc vao bang nua
+            if (memberInfo.isIs_in_guild()){
+                logger.debug("user da co bang");
+                send(new ResponseAddRequestMember(ServerConstant.ERROR,memberInfo), user);
+                return;
+            }
             
             Guild guild = (Guild) Guild.getModel(guild_rq.id, Guild.class);
             if (guild == null) {
@@ -359,11 +365,11 @@ public class GuildHandle extends BaseClientRequestHandler {
                 }
             }
             else if (guild.getStatus()==ServerConstant.guild_status_open){
-                if (!memberInfo.canJoinGuild()){
-                    logger.debug("Thanh vien chua the tham gia Guild khi moi roi bang chua qua 2 tieng");
-                    send(new ResponseAddRequestMember(ServerConstant.ERROR,memberInfo), user);
-                    return;
-                }
+//                if (!memberInfo.canJoinGuild()){
+//                    logger.debug("Thanh vien chua the tham gia Guild khi moi roi bang chua qua 2 tieng");
+//                    send(new ResponseAddRequestMember(ServerConstant.ERROR,memberInfo), user);
+//                    return;
+//                }
                 logger.debug("them nguoi co id: "+id_member + " guild_status_open, id= "+ guild.id);
                 guild.addMember(id_member, ServerConstant.guild_member); 
                 logger.debug("Guild hien tai co "+ guild.list_member.size()+" nguoi");
