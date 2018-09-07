@@ -434,4 +434,7 @@ public class ZPUserInfo extends DataModel {
         }
         return false;
     }
+    
+    
+    
 }

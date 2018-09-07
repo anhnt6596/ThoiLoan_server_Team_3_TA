@@ -16,6 +16,8 @@ import java.io.Writer;
 
 import java.util.Iterator;
 
+import model.ZPUserInfo;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -592,6 +594,117 @@ public class ServerConstant {
             CommonHandle.writeErrLog(e);
         }
 
+    }
+    private static int goldToG(int gold_bd) {
+        return gold_bd;
+    }
+        
+    private static int elixirToG(int elixir_bd) {
+        return elixir_bd;
+    }
+
+    private static int darkElixirToG(int darkElixir_bd) {
+        return darkElixir_bd;
+    }
+    public static int getGold(String type, int level){
+        int g = 0;
+        System.out.println("type 788888888888888 = "+ type);
+        System.out.println("level 788888888888888 = "+ level);
+        try {
+            
+            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
+            //System.out.println(">>>>>>>>>>>> construction.hitpoints = "+ type+ ":"+construction.getInt("hitpoints"));
+            //Object checkObj = construction.opt("gold");   
+            //if (construction.getJSONObject("gold")!= null ){ //neu nha co ton vang
+                
+               
+                //System.out.println("user.gold = " + user.gold);
+                //System.out.println("gold = " + construction.getInt("gold"));
+                g = construction.getInt("gold");
+            //}
+        } catch (JSONException e) {
+            System.out.println("getGold khong ton' tai nguyen");
+        }
+        return g;
+    } 
+    public static int getDarkElixir(String type, int level){
+        int g = 0;
+        try {
+            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
+            g = construction.getInt("darkElixir");
+    //            Object checkObj = construction.opt("darkElixir");
+    //            if (checkObj instanceof JSONObject){ //neu nha co ton vang
+    //                JSONObject Obj = (JSONObject) checkObj;
+    //                //System.out.println("user.gold = " + user.gold);
+    //                System.out.println("Obj.getInt(\"darkElixir\") = " + Obj.getInt("darkElixir"));
+    //
+    //            }
+        } catch (JSONException e) {            
+            System.out.println("get darkElixir khong ton tai nguyen");
+        }
+        return g;
+    }
+    public static int getElixir(String type, int level){
+        int g = 0;
+        try {
+            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
+            g = construction.getInt("elixir");
+    //            Object checkObj = construction.opt("elixir");
+    //            if (checkObj instanceof JSONObject){ //neu nha co ton vang
+    //                JSONObject Obj = (JSONObject) checkObj;
+    //                //System.out.println("user.gold = " + user.gold);
+    //                System.out.println("Obj.getInt(\"elixir\") = " + Obj.getInt("elixir"));
+    //                g = Obj.getInt("elixir");
+    //            }
+        } catch (JSONException e) {
+            System.out.println("getElixir khong ton tai nguyen");
+        }
+        return g;
+    }
+    public static int getCoin(String type, int level){
+        System.out.println("level in getCoin: "+ level);
+        int g = 0;
+        try {
+            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
+            System.out.println("coin>>>>>>> construction.hitpoints = "+ type+ ":"+construction.getInt("hitpoints"));
+            g = construction.getInt("coin");
+    //            Object checkObj = construction.opt("coin");
+    //            if (checkObj instanceof JSONObject){ //neu nha co ton vang
+    //                JSONObject Obj = (JSONObject) checkObj;
+    //                //System.out.println("user.gold = " + user.gold);
+    //                System.out.println("Obj.getInt(\"coin\") = " + Obj.getInt("coin"));
+    //                g = Obj.getInt("coin");
+    //            }
+            System.out.println("getCoin  ton: "+g);
+        } catch (JSONException e) {
+            System.out.println("getCoin khong ton tai nguyen");
+        }
+        return g;
+    }
+    public static int checkResourceBasedOnType(ZPUserInfo userInfo, String type, int level) {
+        int gold_bd = getGold(type,level);
+        int elixir_bd = getElixir(type,level);
+        int darkElixir_bd = getDarkElixir(type,level);
+        
+        return checkResource(userInfo, gold_bd, elixir_bd, darkElixir_bd );
+    }
+        
+    public static int checkResource(ZPUserInfo userInfo, int gold, int elixir, int darkElixir) {
+        int g = 0;
+        
+        if (userInfo.gold < gold){
+            g += goldToG(gold - userInfo.gold);                    
+        };
+        
+        if (userInfo.elixir < elixir){
+            g += elixirToG(elixir - userInfo.elixir);                    
+        };
+        
+        if (userInfo.darkElixir < darkElixir){
+            g += darkElixirToG(darkElixir - userInfo.darkElixir);                    
+        };
+        
+        return g;
     }
     
     

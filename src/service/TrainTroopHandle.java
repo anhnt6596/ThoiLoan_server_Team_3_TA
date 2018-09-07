@@ -153,9 +153,9 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
      
             int levelTroop = userInfo.getTroopLevel(packet.typeTroop);
             int trainingElixir = troop.getTrainingElixir(levelTroop);
-            int trainingDarkElixir = troop.getTrainingDarkElixir(levelTroop); 
-            int g = checkResource(userInfo, trainingElixir, trainingDarkElixir);
-            
+            int trainingDarkElixir = troop.getTrainingDarkElixir(levelTroop);
+            int g = ServerConstant.checkResource(userInfo, 0, trainingElixir, trainingDarkElixir);
+
             //check tai nguyen co du khong
             if(g > userInfo.getCoin()) {
                 System.out.println("======================= Khong du tai nguyen ======================");
@@ -163,7 +163,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             }
 
             //Neu du thi giam tai nguyen
-            reduceUserResources(userInfo, trainingElixir, trainingDarkElixir, g);
+            userInfo.reduceUserResources(0, trainingElixir, trainingDarkElixir, g, "", false);
             userInfo.saveModel(user.getId());
               
             barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
@@ -215,11 +215,10 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                return;
             }
             
-            //check tai nguyen
             int levelTroop = userInfo.getTroopLevel(packet.typeTroop);
             int trainingElixir = troop.getTrainingElixir(levelTroop);
             int trainingDarkElixir = troop.getTrainingDarkElixir(levelTroop);
-            
+
             //refund tai nguyen
             int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
             int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
@@ -228,11 +227,8 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             userInfo.addResource(0,trainingElixir,trainingDarkElixir,0,gold_rq,elx_rq,dElx_rq);
             userInfo.saveModel(user.getId());
 
-            System.out.println("============================================ DUYYYY 2 ");
             barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
-            System.out.println("============================================ DUYYYY 3 ");
             barrackQueueInfo.saveModel(user.getId());
-            System.out.println("============================================ DUYYYY 4 ");
             send(new ResponseRequestCancelTrainTroop(ServerConstant.SUCCESS), user);    
         } catch (Exception e) {
             System.out.println(e);
@@ -260,32 +256,31 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                 return;
             }
-            System.out.println("============================================ NGUYET 1 ");
 
             TroopInBarrack troop = barrackQueue.getTroopInBarrackByName(packet.typeTroop);
             if(troop == null){
-                send(new ResponseRequestCancelTrainTroop(ServerConstant.ERROR), user);
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                 return;
             }
-            System.out.println("============================================ NGUYET 2 ");
+
+            //check capacity
+            if(userInfo.getCurrentCapacityTroop() + troop.getHousingSpace() > userInfo.getTotalCapacityAMCs()){
+                System.out.println("======================= Vuot qua capacity ======================");
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
+                return;
+            }
 
             int indexTroop = barrackQueue.trainTroopList.indexOf(troop);
-            System.out.println("============================================ NGUYET 3 ");
 
-            int remainTroop = packet.remainTroop;   
-            System.out.println("============================================ NGUYET 4 ");
+            int remainTroop = packet.remainTroop;
 
             long timeTrain = ServerConstant.configTroopBase.getJSONObject(packet.typeTroop).getLong("trainingTime") * 1000;
-            System.out.println("============================================ NGUYET 5 ");
 
             long currentTime = System.currentTimeMillis();
             long pastTime = currentTime - barrackQueue.startTime;
-            
-            System.out.println("============================================ NGUYET 6 ");
 
             
             if ((pastTime >= timeTrain) && (remainTroop == troop.getAmount() - 1)){
-                System.out.println("============================================ NGUYET 7 ");
 
                 troop.amount -= 1;
                 //Tang so luong loai troop nay
@@ -294,33 +289,23 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                     send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                     return;
                 }
-                System.out.println("============================================ NGUYET 8 ");
 
                 Troop troopObj = troopInfo.troopMap.get(packet.typeTroop);
-                System.out.println("============================================ NGUYET 9 ");
 
                 troopObj.population++;
                 troopInfo.troopMap.put(packet.typeTroop, troopObj);
                 troopInfo.saveModel(user.getId());
-                System.out.println("============================================ NGUYET 10 ");
 
                 //Het icon trong item
                 if(troop.getAmount() == 0){
                     barrackQueue.updateQueue(indexTroop);
-                    System.out.println("============================================ NGUYET 11 ");
 
                 }else{
                     barrackQueue.startTime = System.currentTimeMillis();    
                 }
             }           
-            
-//            barrackQueue.trainTroopList.set(indexTroop, troop);
-            System.out.println("============================================ NGUYET 12 ");
 
             barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
-            
-            System.out.println("============================================ NGUYET 13 ");
-            
             barrackQueueInfo.saveModel(user.getId());
             send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.SUCCESS, packet.idBarrack, packet.typeTroop), user);
         } catch (Exception e) {
@@ -383,8 +368,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 troopInfo.troopMap.put(troop.getName(), troopObj);
             }
             troopInfo.saveModel(user.getId());
-            
-            reduceUserResources(userInfo, 0, 0, timeToG(time));
+            userInfo.reduceUserResources(0, 0, 0, timeToG(time), "", false);
             userInfo.saveModel(user.getId());
             
             barrackQueue.doReset();            
@@ -396,49 +380,11 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             System.out.println(e);
         }
     }
-    
-        
-    private int elixirToG(int elixir_bd) {
-        return elixir_bd;
-    }
-
-    private int darkElixirToG(int darkElixir_bd) {
-        return darkElixir_bd;
-    }
-    
+     
     private int timeToG(int time) {
         return (int) Math.ceil(time/60.0);
     }
-        
-    private int checkResource(ZPUserInfo user, int elixir, int darkElixir) {
-        int g = 0;
-        
-        if (user.elixir < elixir){
-            g += elixirToG(elixir - user.elixir);                    
-        };
-        
-        if (user.darkElixir < darkElixir){
-            g += darkElixirToG(darkElixir - user.darkElixir);                    
-        };
-        
-        return g;
-    }
-        
-    private void reduceUserResources(ZPUserInfo user, int elixir, int darkElixir, int coin){
-        //tru elixir
-        if (user.elixir < elixir){
-            user.elixir = 0;     
-        }else {
-            user.elixir = user.elixir - elixir;
-        }
-        if (user.darkElixir < darkElixir){
-            user.darkElixir = 0;
-        }else {
-            user.darkElixir = user.darkElixir - darkElixir;
-        }
-        
-        user.coin = user.coin - coin;
-    }
+
     
     
     

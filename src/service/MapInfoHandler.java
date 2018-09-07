@@ -270,21 +270,21 @@ MapInfoHandler extends BaseClientRequestHandler {
                    }
             //System.out.println("new level = " + level );
             int check_resource = 0;
-            check_resource = checkResource(userInfo,(add_construction.type),level);
+            check_resource = ServerConstant.checkResourceBasedOnType(userInfo,(add_construction.type),level);
                
             
             //System.out.println("check_resource coin bu vao tai nguyen khac to add building= " + check_resource );
             
-            int coin = getCoin(add_construction.type,level); //coin de thuc hien thao tac voi nha
+            int coin = ServerConstant.getCoin(add_construction.type,level); //coin de thuc hien thao tac voi nha
             
             System.out.println("check_resource+coin= " + (check_resource+coin) );
             System.out.println("userInfo.coin = " + userInfo.coin );
             
             if (checkPosition && (check_resource+coin<userInfo.coin)){ 
                 //add building to pending
-                int gold = getGold(add_construction.type,level);
-                int elixir = getElixir(add_construction.type,level);
-                int darkElixir = getDarkElixir(add_construction.type,level);
+                int gold = ServerConstant.getGold(add_construction.type,level);
+                int elixir = ServerConstant.getElixir(add_construction.type,level);
+                int darkElixir = ServerConstant.getDarkElixir(add_construction.type,level);
                 
                 
                 
@@ -396,16 +396,16 @@ MapInfoHandler extends BaseClientRequestHandler {
             }
             
         int exchange_resource = 0;
-        exchange_resource = checkResource(userInfo,(building.type),building.level+1);
+        exchange_resource = ServerConstant.checkResourceBasedOnType(userInfo,(building.type),building.level+1);
             
         System.out.println("check_resource chuyen doi to upgrade building= " + exchange_resource );
-        int coin = getCoin(building.type,building.level+1);
+        int coin = ServerConstant.getCoin(building.type,building.level+1);
 
         if ((exchange_resource+coin<userInfo.coin)){ 
                 //add building to pending
-                int gold = getGold(building.type,building.level+1);
-                int elixir = getElixir(building.type,building.level+1);
-                int darkElixir = getDarkElixir(building.type,building.level+1);
+                int gold = ServerConstant.getGold(building.type,building.level+1);
+                int elixir = ServerConstant.getElixir(building.type,building.level+1);
+                int darkElixir = ServerConstant.getDarkElixir(building.type,building.level+1);
                 
                 mapInfo.print();
                 
@@ -519,16 +519,16 @@ MapInfoHandler extends BaseClientRequestHandler {
             }
             
         int exchange_resource = 0;
-        exchange_resource = checkResource(userInfo,(building.type),building.level+1);
+        exchange_resource = ServerConstant.checkResourceBasedOnType(userInfo,(building.type),building.level+1);
             
         System.out.println("check_resource chuyen doi to upgrade building= " + exchange_resource );
-        int coin = getCoin(building.type,building.level+1);
+        int coin = ServerConstant.getCoin(building.type,building.level+1);
 
         if ((exchange_resource+coin<userInfo.coin)){ 
                 //add building to pending
-                int gold = getGold(building.type,building.level+1);
-                int elixir = getElixir(building.type,building.level+1);
-                int darkElixir = getDarkElixir(building.type,building.level+1);
+                int gold = ServerConstant.getGold(building.type,building.level+1);
+                int elixir = ServerConstant.getElixir(building.type,building.level+1);
+                int darkElixir = ServerConstant.getDarkElixir(building.type,building.level+1);
                 
                 mapInfo.print();
                 
@@ -598,124 +598,8 @@ MapInfoHandler extends BaseClientRequestHandler {
         }
               
         } catch (Exception e) {
-        }
-    
-        
+        }   
     }
-    
-    private int checkResource(ZPUserInfo user,String type, int level) {
-        //Kiem tra tai nguyen co du khong
-        //Neu g = 0 la du tai nguyen
-        //Neu g > 0 la so G con thieu so voi cost
-        System.out.println("level ="+level);
-        
-        int g = 0;
-        int gold_bd = getGold(type,level);
-        System.out.println("check Resource, gold  = "+ gold_bd);
-        if (user.gold < gold_bd){
-            g+=goldToG(gold_bd-user.gold);                    
-        };
-        
-        int elixir_bd = getElixir(type,level);
-        if (user.elixir < elixir_bd){
-            g+=elixirToG(elixir_bd-user.elixir);                    
-        };
-        
-        int darkElixir_bd = getDarkElixir(type,level);
-        if (user.darkElixir < darkElixir_bd){
-            g+=darkElixirToG(darkElixir_bd-user.darkElixir);                    
-        };
-        
-        System.out.println("so coin de bu vao cac tai nguyen khac la = "+g);
-        return g;
-    }
-
-    public int getGold(String type, int level){
-        int g = 0;
-        System.out.println("type 788888888888888 = "+ type);
-        System.out.println("level 788888888888888 = "+ level);
-        try {
-            
-            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
-            //System.out.println(">>>>>>>>>>>> construction.hitpoints = "+ type+ ":"+construction.getInt("hitpoints"));
-            //Object checkObj = construction.opt("gold");   
-            //if (construction.getJSONObject("gold")!= null ){ //neu nha co ton vang
-                
-               
-                //System.out.println("user.gold = " + user.gold);
-                //System.out.println("gold = " + construction.getInt("gold"));
-                g = construction.getInt("gold");
-            //}
-        } catch (JSONException e) {
-            System.out.println("getGold khong ton' tai nguyen");
-        }
-        return g;
-    } 
-    public int getDarkElixir(String type, int level){
-        int g = 0;
-        try {
-            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
-            g = construction.getInt("darkElixir");
-//            Object checkObj = construction.opt("darkElixir");   
-//            if (checkObj instanceof JSONObject){ //neu nha co ton vang
-//                JSONObject Obj = (JSONObject) checkObj;
-//                //System.out.println("user.gold = " + user.gold);
-//                System.out.println("Obj.getInt(\"darkElixir\") = " + Obj.getInt("darkElixir"));
-//                
-//            }
-        } catch (JSONException e) {            
-            System.out.println("get darkElixir khong ton tai nguyen");
-        }
-        return g;
-    }
-    public int getElixir(String type, int level){
-        int g = 0;
-        try {
-            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
-            g = construction.getInt("elixir");
-//            Object checkObj = construction.opt("elixir");   
-//            if (checkObj instanceof JSONObject){ //neu nha co ton vang
-//                JSONObject Obj = (JSONObject) checkObj;
-//                //System.out.println("user.gold = " + user.gold);
-//                System.out.println("Obj.getInt(\"elixir\") = " + Obj.getInt("elixir"));
-//                g = Obj.getInt("elixir");
-//            }
-        } catch (JSONException e) {
-            System.out.println("getElixir khong ton tai nguyen");
-        }
-        return g;
-    }
-    public int getCoin(String type, int level){
-        System.out.println("level in getCoin: "+ level);
-        int g = 0;
-        try {
-            JSONObject construction = ServerConstant.config.getJSONObject(type).getJSONObject(String.valueOf(level));
-            System.out.println("coin>>>>>>> construction.hitpoints = "+ type+ ":"+construction.getInt("hitpoints"));
-            g = construction.getInt("coin");
-//            Object checkObj = construction.opt("coin");   
-//            if (checkObj instanceof JSONObject){ //neu nha co ton vang
-//                JSONObject Obj = (JSONObject) checkObj;
-//                //System.out.println("user.gold = " + user.gold);
-//                System.out.println("Obj.getInt(\"coin\") = " + Obj.getInt("coin"));
-//                g = Obj.getInt("coin");
-//            }
-            System.out.println("getCoin  ton: "+g);
-        } catch (JSONException e) {
-            System.out.println("getCoin khong ton tai nguyen");
-        }
-        return g;
-    }
-
-    private int goldToG(int gold_bd) {
-        return gold_bd;
-    }
-    private int elixirToG(int elixir_bd) {
-        return elixir_bd;
-    }
-    private int darkElixirToG(int darkElixir_bd) {
-        return darkElixir_bd;
-    }
-
     private void processFinishTimeConstruction(User user, RequestFinishTimeConstruction finish_time) {
         System.out.println(">>>>>>processFinishTimeConstruction");
         MapInfo mapInfo;
@@ -970,8 +854,8 @@ MapInfoHandler extends BaseClientRequestHandler {
                 }
             
             int exchange_resource = 0;
-            exchange_resource = checkResource(userInfo,(obs.type),1);
-            int coin = getCoin(obs.type,obs.level);
+            exchange_resource = ServerConstant.checkResourceBasedOnType(userInfo,(obs.type),1);
+            int coin = ServerConstant.getCoin(obs.type,obs.level);
             if ((exchange_resource+coin>userInfo.coin)){ 
                 logger.info("User khong du tai nguyen de don cay");
                 send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
@@ -1255,11 +1139,11 @@ MapInfoHandler extends BaseClientRequestHandler {
                         return;
                     }
                 
-                exchange_resource = exchange_resource + checkResource(userInfo,(building.type),building.level+1);
-                coin = coin + getCoin(building.type,building.level+1);
-                gold = gold + getGold(building.type,building.level+1);
-                elixir = elixir + getElixir(building.type,building.level+1);
-                darkElixir = darkElixir + getDarkElixir(building.type,building.level+1);
+                exchange_resource = exchange_resource + ServerConstant.checkResourceBasedOnType(userInfo,(building.type),building.level+1);
+                coin = coin + ServerConstant.getCoin(building.type,building.level+1);
+                gold = gold + ServerConstant.getGold(building.type,building.level+1);
+                elixir = elixir + ServerConstant.getElixir(building.type,building.level+1);
+                darkElixir = darkElixir + ServerConstant.getDarkElixir(building.type,building.level+1);
             }
             
             
