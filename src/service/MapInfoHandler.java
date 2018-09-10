@@ -20,6 +20,7 @@ import cmd.receive.map.RequestUpgradeConstruction;
 import cmd.receive.map.RequestAddConstruction;
 import cmd.receive.map.RequestCancleConstruction;
 import cmd.receive.map.RequestFinishTimeConstruction;
+import cmd.receive.map.RequestFinishTimeRemoveObs;
 import cmd.receive.map.RequestGetServerTime;
 import cmd.receive.map.RequestMapInfo;
 
@@ -38,6 +39,7 @@ import cmd.send.demo.ResponseMoveMultiWall;
 import cmd.send.demo.ResponseRequestAddConstruction;
 import cmd.send.demo.ResponseRequestCancleConstruction;
 import cmd.send.demo.ResponseRequestFinishTimeConstruction;
+import cmd.send.demo.ResponseRequestFinishTimeRemoveObs;
 import cmd.send.demo.ResponseRequestMapInfo;
 import cmd.send.demo.ResponseRequestMoveConstruction;
 import cmd.send.demo.ResponseRequestQuickFinish;
@@ -133,7 +135,11 @@ MapInfoHandler extends BaseClientRequestHandler {
                     RequestRemoveObs remove_obs = new RequestRemoveObs(dataCmd);
                     processRequestRemoveObs(user,remove_obs);
                     break;
-                
+                case CmdDefine.FINISH_TIME_REMOVE_OBS:
+                    logger.info("FINISH_TIME_REMOVE_OBS");
+                    RequestFinishTimeRemoveObs finish_remove_obs = new RequestFinishTimeRemoveObs(dataCmd);
+                    processRequestFinishTimeRemoveObs(user,finish_remove_obs);
+                    break;
                 case CmdDefine.QUICK_FINISH:
                     logger.info("QUICK_FINISH ");
                     RequestQuickFinish quick_finish = new RequestQuickFinish(dataCmd);
@@ -145,10 +151,10 @@ MapInfoHandler extends BaseClientRequestHandler {
                     processGetServerTime(user,server_time);
                     break;                
                 case CmdDefine.DO_HARVEST:
-                        //System.out.println("GET_SERVER_TIME");
-                        RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
-                        processDoHarvest(user, do_harvest);
-                        break;
+                    //System.out.println("GET_SERVER_TIME");
+                    RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
+                    processDoHarvest(user, do_harvest);
+                    break;
                 case CmdDefine.MOVE_MULTI_WALL:                    
                     RequestMoveMultiWall move_multiWall = new RequestMoveMultiWall(dataCmd);
                     processMoveMultiWall(user,move_multiWall);
@@ -848,10 +854,15 @@ MapInfoHandler extends BaseClientRequestHandler {
             logger.debug(obs.type+" " + obs.status+ obs.id);
             logger.debug("id obs duoc truyen len la: "+ remove_obs.id);
             if (obs.status.equals(ServerConstant.destroy_status)){    
-                    logger.info("Obstacle da duoc loai bo tu truoc");
-                    send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
-                    return;
-                }
+                logger.info("Obstacle da duoc loai bo tu truoc");
+                send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+                return;
+            }
+            if (obs.status.equals(ServerConstant.pending_status)){    
+                logger.info("Obstacle dang duoc loai bo");
+                send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+                return;
+            }
             
             int exchange_resource = 0;
             exchange_resource = ServerConstant.checkResourceBasedOnType(userInfo,(obs.type),1);
@@ -861,9 +872,6 @@ MapInfoHandler extends BaseClientRequestHandler {
                 send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
                 return;
             }
-            
-            
-            
             
 //            int coin = obs.getGtoRemove(ServerConstant.coin_resource);
             
@@ -889,6 +897,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                         //tra ve false
                         logger.warn("Khong du tien de giai phong tho xay va chat cay");
                         send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+                        return;
                     }
                     else {
                         //giai phong 1 ngoi nha pending
@@ -904,38 +913,18 @@ MapInfoHandler extends BaseClientRequestHandler {
                 else { //neu da du tho xay
                     userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource, obs.type, true);
                 }
-                
-                //thuong resource sau khi bo cay                
-                int  elixir_reward = obs.getElixirReward();
-                int  darkElixir_reward = obs.getDarkElixirReward();
-                
-                
-                int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
-                int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
-                int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
-                
-                
-                userInfo.addResource(0,elixir_reward,darkElixir_reward,0,gold_rq,elx_rq,dElx_rq);
-                
-                userInfo.saveModel(user.getId());
-                mapInfo.saveModel(user.getId());
-                //                        logger.info("in ra khi add construction");
-                //                        mapInfo.print();
-                send(new ResponseRequestRemoveObs(ServerConstant.SUCCESS), user);
-                
             }
             else {
                 //linhrafa --Neu false
                 //tra ve false
                 send(new ResponseRequestRemoveObs(ServerConstant.ERROR), user);
+                return;
             } 
-            
-            
-                      
-            
+            mapInfo.listObs.get(remove_obs.id).onRemove();
             mapInfo.saveModel(user.getId());
             userInfo.saveModel(user.getId());
-            send(new ResponseRequestCancleConstruction(ServerConstant.SUCCESS), user);
+            send(new ResponseRequestRemoveObs(ServerConstant.SUCCESS), user);
+            return;
             
         } catch (Exception e) {
             
@@ -1209,6 +1198,60 @@ MapInfoHandler extends BaseClientRequestHandler {
         
         
         
-    }    
+    }
+
+    private void processRequestFinishTimeRemoveObs(User user, RequestFinishTimeRemoveObs finish_remove_obs) {
+        logger.info("processRequestFinishTimeRemoveObs");
+        MapInfo mapInfo;
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               ////send response error
+                logger.debug("khong ton tai user");
+               send(new ResponseRequestFinishTimeRemoveObs(ServerConstant.ERROR), user);
+               return;
+            }
+            //*------------------------------------------------
+            mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
+            if (mapInfo == null) {               
+               //send response error
+               logger.debug("khong ton tai map");
+               send(new ResponseRequestFinishTimeRemoveObs(ServerConstant.ERROR), user);
+               return;
+            }
+            
+            Obs obs = mapInfo.listObs.get(finish_remove_obs.id);
+            logger.debug("OBS: " + obs.type+" STATUS" + obs.status+ " ID = " + obs.id);
+            
+            if (obs.status.equals(ServerConstant.destroy_status)){    
+                logger.info("Obstacle da duoc loai bo tu truoc");
+                send(new ResponseRequestFinishTimeRemoveObs(ServerConstant.ERROR), user);
+                return;
+            }
+            if (obs.status.equals(ServerConstant.complete_status)){    
+                logger.info("Obstacle dang co status la complete");
+                send(new ResponseRequestFinishTimeRemoveObs(ServerConstant.ERROR), user);
+                return;
+            }
+            
+            //thuong resource sau khi bo cay                
+            int  elixir_reward = obs.getElixirReward();
+            int  darkElixir_reward = obs.getDarkElixirReward();
+            int gold_rq = mapInfo.getRequire(ServerConstant.gold_capacity, ServerConstant.gold_sto);    
+            int elx_rq = mapInfo.getRequire(ServerConstant.elixir_capacity, ServerConstant.elixir_sto);
+            int dElx_rq = mapInfo.getRequire(ServerConstant.darkElixir_capacity, ServerConstant.darkElixir_sto);
+            userInfo.addResource(0,elixir_reward,darkElixir_reward,0,gold_rq,elx_rq,dElx_rq);
+            
+            mapInfo.listObs.get(finish_remove_obs.id).finishRemove();
+            
+            
+            mapInfo.saveModel(user.getId());
+            userInfo.saveModel(user.getId());
+            
+            send(new ResponseRequestFinishTimeRemoveObs(ServerConstant.SUCCESS), user);
+            
+        } catch (Exception e) {
+        }
+    }
 }
 

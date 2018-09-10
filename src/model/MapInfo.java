@@ -261,7 +261,7 @@ public class MapInfo extends DataModel{
             
         }
         for (Obs obs : this.listObs){
-            if (obs.status.equals("pending")){
+            if (obs.status.equals(ServerConstant.pending_status)){
                 if (dd==0){
                     dd++;
                     kq = obs.getTimeConLai();
@@ -333,7 +333,7 @@ public class MapInfo extends DataModel{
         
         if (type.equals("obs")){
             System.out.println("Obs dc release la: "+ this.listObs.get(kq).type+ "time_con_lai= "+ time);            
-            if (this.listObs.get(kq).getStatus().equals("pending")){
+            if (this.listObs.get(kq).getStatus().equals(ServerConstant.pending_status)){
                 this.listObs.get(kq).setStatus(ServerConstant.destroy_status);
             }
         }
@@ -422,9 +422,13 @@ public class MapInfo extends DataModel{
                     time_cur = System.currentTimeMillis();
                     distance = time_cur - obs.timeStart;
                     time_xay = obs.getTimeBuild();
-                    if ((!obs.status.equals("complete")) &&(distance > time_xay) && obs.timeStart!=-1){
+                    System.out.println("distance = " + distance);
+                    System.out.println("time_xay = " + time_xay);
+                    System.out.println("obs.status = " + obs.status);
+                    if ((obs.status.equals(ServerConstant.pending_status)) &&(distance > time_xay) ){
+                        obs.setStatus(ServerConstant.destroy_status);
                     }
-                    obs.setStatus(ServerConstant.destroy_status);
+                    
                 }
         }
     }

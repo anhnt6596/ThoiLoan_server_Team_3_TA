@@ -45,10 +45,15 @@ public class ResponseRequestMapInfo extends BaseMsg {
         bf.putInt(size);
         for (Obs obs : mapInfo.listObs) {
             bf.putInt(obs.id+5000);
+            System.out.println("obs.id="+obs.id);
             putStr(bf, obs.type);
-            bf.putInt(obs.posX);
+            System.out.println("obs.type="+obs.type);
+            bf.putInt(obs.posX);            
             bf.putInt(obs.posY);  
-//            System.out.println("obs.id="+obs.id);
+            putStr(bf, obs.status);
+            bf.putLong(obs.getTimeStart());
+            System.out.println("obs.status="+obs.status);
+            
 //            System.out.println("obs.type="+obs.type);
 //            System.out.println("obs.posX="+obs.posX);
 //            System.out.println("obs.posY="+obs.posY);

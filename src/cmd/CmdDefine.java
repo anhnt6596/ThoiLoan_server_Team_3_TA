@@ -22,7 +22,7 @@ public class CmdDefine {
     public static final short UPGRADE_CONSTRUCTION = 2004;
     public static final short CANCLE_CONSTRUCTION = 2005;
     public static final short REMOVE_OBS = 2006;
-    public static final short GET_HARVEST_INFO = 2007;
+    public static final short FINISH_TIME_REMOVE_OBS = 2007;
     public static final short DO_HARVEST = 2008;
     public static final short MOVE_MULTI_WALL = 2009;
     public static final short UPGRADE_MULTI_WALL  = 2010;
