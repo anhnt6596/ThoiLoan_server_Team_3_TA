@@ -77,7 +77,7 @@ public class BarrackQueueInfo extends DataModel {
         
         for(int j = 0; j < barrackQueueList.size(); j++) {
             barrackQueue = barrackQueueList.get(j);
-            if(barrackQueue.startTime == 0 || this.isBarrackUpgrading(user, barrackQueue.getId())){
+            if(this.isBarrackUpgrading(user, barrackQueue.getId())){
                 continue;
             }
             
@@ -113,13 +113,12 @@ public class BarrackQueueInfo extends DataModel {
         BarrackQueue barrackQueue;     
         for(int j = 0; j < barrackQueueList.size(); j++) {
             barrackQueue = barrackQueueList.get(j);
-            if(barrackQueue.startTime != 0){
+            if(barrackQueue.getAmountItemInQueue() > 0){
                 isCheck = true;
             }
         }
         
         if(isCheck == false) {
-            System.out.println("============================================ KHONG CO GI DE CHECK ============== ");
             return;
         }
 
@@ -149,8 +148,6 @@ public class BarrackQueueInfo extends DataModel {
         int tempTroop = this.getAmountTroopCapacityCanBeTrained(user, deltaTime);
         
         if(tempTroop <= troopAvai){
-            System.out.println("============================================ temp 1 return = " + tempTroop);
-            //OK, Goi ham thay doi so luong linh voi deltaTime nay
             this.finishCheckBarrack(user, deltaTime);
             return;
         }
@@ -168,7 +165,6 @@ public class BarrackQueueInfo extends DataModel {
                 tempTime /= 2;
                 deltaTime -= tempTime / 2;
             }else{
-                System.out.println("============================================ tem 5 return = " + tempTroop);
                 this.finishCheckBarrack(user, deltaTime);
                 return;
             }
@@ -176,12 +172,10 @@ public class BarrackQueueInfo extends DataModel {
             if(tempTroop <= troopAvai) {
                 tempTimeLoop = deltaTime;
             }
-            System.out.println("============================================ tem lan loop thu " + i + ": " + tempTroop);
             i++;
         }
         
         //Luc nay, deltaTime da ok
-        System.out.println("============================================ tem final return = " + tempTroop);
         this.finishCheckBarrack(user, tempTimeLoop);
         return;
     }
@@ -200,77 +194,22 @@ public class BarrackQueueInfo extends DataModel {
 
         for(int j = 0; j < barrackQueueList.size(); j++) {
             barrackQueue = barrackQueueList.get(j);
-            if(barrackQueue.startTime == 0 || this.isBarrackUpgrading(user, barrackQueue.getId())){
+            if(this.isBarrackUpgrading(user, barrackQueue.getId())){
                 continue;
             }
             
             deltaTime = _deltaTime - (barrackQueue.startTime - minStartTime);
-            System.out.println("==================== StartTime cua barrack id: " + barrackQueue.getId() + " la: " + barrackQueue.startTime);
-            System.out.println("==================== DeltaTime cua barrack id: " + barrackQueue.getId() + " la: " + deltaTime);
-            System.out.println("==================== getMinStartTime(): " + this.getMinStartTime(user));
 
             //troopList
             if(barrackQueue.getAmountItemInQueue() > 0 && barrackQueue.getTotalTroopCapacity() > 0){
                 long amountTrainedTroop = 0;
                 TroopInBarrack troopInBarrack;
-//                int i = 1;
-//                while(true){
-//                    System.out.println("============================================ Lan while thu: " + i);
-//                    try {
-//                        troopInBarrack = barrackQueue.getTroopByPosition(0);
-//                    } catch (Exception e) {
-//                        System.out.println("============================================ Loi o day " + e);
-//                        return;
-//                    }
-//                    
-//                    amountTrainedTroop = deltaTime / (troopInBarrack.getTrainingTime() * 1000);
-//                    System.out.println("============================================ Amount Trained Troops: " + amountTrainedTroop);
-//                    if(amountTrainedTroop >= troopInBarrack.getAmount()){
-//                        int temp = troopInBarrack.getAmount();
-//                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
-//                        barrackQueue.updateQueue(troopInBarrack.getCurrentPosition());
-//                        
-//                        troopInBarrack.setCurrentPosition(-1);
-//                        troopInBarrack.setAmount(0);
-//                        
-//                        //Tang so luong linh cua troop do
-//                        userInfo.increaseAmountTroop(troopInBarrack.getName(), temp);
-//                         
-//                        barrackQueue.setAmountItemInQueue(barrackQueue.getAmountItemInQueue() - 1);
-//                        barrackQueue.setTotalTroopCapacity(barrackQueue.getTotalTroopCapacity() - temp * troopInBarrack.getHousingSpace());
-//                              
-//                        if(barrackQueue.getAmountItemInQueue() == 0){
-//                            System.out.println("=========================== Amount item in queue = 0");
-//                            barrackQueue.startTime = 0;
-//                            break;
-//                        }
-//                        
-//                        deltaTime -=  temp * troopInBarrack.getTrainingTime() * 1000;
-//                        if(deltaTime == 0) {
-//                            System.out.println("=========================== deltaTime = 0");
-//                            break;
-//                        }
-//                                     
-//                    }else if(amountTrainedTroop >= 1){
-//                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
-//                        userInfo.increaseAmountTroop(troopInBarrack.getName(), (int) amountTrainedTroop);
-//                        troopInBarrack.setAmount(troopInBarrack.getAmount() - (int) amountTrainedTroop);
-//                        barrackQueue.setTotalTroopCapacity(barrackQueue.getTotalTroopCapacity() - (int) amountTrainedTroop * troopInBarrack.getHousingSpace());
-//                        barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.getTrainingTime() * 1000);
-//                        break;
-//                    }else{
-//                        System.out.println("============================== Chua train duoc con nao");
-//                        break;
-//                    }
-//                    i++;
-//                }
                 
                 for(int i = 0; i < barrackQueue.getAmountItemInQueue(); i++) {
                     troopInBarrack = barrackQueue.trainTroopList.get(i);
                     amountTrainedTroop = deltaTime / (troopInBarrack.getTrainingTime() * 1000);
                     if(amountTrainedTroop >= troopInBarrack.getAmount()){
                         int temp = troopInBarrack.getAmount();
-                        System.out.println("============================================ amountTrainedTroop >= troopInBarrack");
                         barrackQueue.updateQueue(i);
                         troopInBarrack.setAmount(0);
                         
@@ -278,19 +217,14 @@ public class BarrackQueueInfo extends DataModel {
                         userInfo.increaseAmountTroop(troopInBarrack.getName(), temp);
                               
                         if(barrackQueue.getAmountItemInQueue() == 0){
-                            System.out.println("=========================== Amount item in queue = 0");
                             barrackQueue.startTime = 0;
                             break;
                         }
                         
                         deltaTime -=  temp * troopInBarrack.getTrainingTime() * 1000;
-                        if(deltaTime == 0) {
-                            System.out.println("=========================== deltaTime = 0");
-                            break;
-                        }
+                        if(deltaTime == 0) break;
                         i--;
                     }else if(amountTrainedTroop >= 1){
-                        System.out.println("============================================ 1 <= amountTrainedTroop < troopInBarrack");
                         userInfo.increaseAmountTroop(troopInBarrack.getName(), (int) amountTrainedTroop);
                         troopInBarrack.setAmount(troopInBarrack.getAmount() - (int) amountTrainedTroop);
                         barrackQueue.startTime = System.currentTimeMillis() - (deltaTime - amountTrainedTroop * troopInBarrack.getTrainingTime() * 1000);
