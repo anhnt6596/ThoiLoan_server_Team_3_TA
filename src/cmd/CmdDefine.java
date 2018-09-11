@@ -22,7 +22,7 @@ public class CmdDefine {
     public static final short UPGRADE_CONSTRUCTION = 2004;
     public static final short CANCLE_CONSTRUCTION = 2005;
     public static final short REMOVE_OBS = 2006;
-    public static final short GET_HARVEST_INFO = 2007;
+    public static final short FINISH_TIME_REMOVE_OBS = 2007;
     public static final short DO_HARVEST = 2008;
     public static final short MOVE_MULTI_WALL = 2009;
     public static final short UPGRADE_MULTI_WALL  = 2010;
@@ -84,6 +84,7 @@ public class CmdDefine {
     public static final short CANCEL_TRAIN_TROOP = 7003;
     public static final short QUICK_FINISH_TRAIN_TROOP = 7004;
     public static final short FINISH_TIME_TRAIN_TROOP = 7005;
+    public static final short STOP_TRAIN = 7006;
     
     public static final short NEW_MESSAGE = 8001;
     public static final short GIVE_TROOP_GUILD = 8002;

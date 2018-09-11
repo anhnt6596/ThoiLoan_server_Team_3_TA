@@ -32,10 +32,7 @@ import org.slf4j.LoggerFactory;
     public void handleClientRequest(User user, DataCmd dataCmd) {
         try {
             System.out.println("dataCmd.getId()" + dataCmd.getId());
-            switch (dataCmd.getId()) {
-                case CmdDefine.GET_HARVEST_INFO:
-                    
-                    break;
+            switch (dataCmd.getId()) {                
                 case CmdDefine.DO_HARVEST:
                     RequestDoHarvest do_harvest = new RequestDoHarvest(dataCmd);
                     processDoHarvest(user, do_harvest);

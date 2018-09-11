@@ -14,6 +14,8 @@ import cmd.receive.train.RequestTrainTroop;
 import cmd.send.train.ResponseRequestQuickFinishTrainTroop;
 import cmd.receive.train.RequestQuickFinishTrainTroop;
 
+import cmd.receive.train.RequestStopTrain;
+
 import cmd.send.demo.ResponseRequestQuickFinish;
 
 import cmd.send.train.ResponseRequestCancelTrainTroop;
@@ -85,6 +87,10 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                     RequestFinishTimeTrainTroop finishTimePacket = new RequestFinishTimeTrainTroop(dataCmd);
                     processRequestFinishTimeTrainTroop(user, finishTimePacket);
                     break;
+                case CmdDefine.STOP_TRAIN:
+                    RequestStopTrain stopTrainPacket = new RequestStopTrain(dataCmd);
+                    processRequestStopTrain(user, stopTrainPacket);
+                    break;
             }
         } catch (Exception e) {
             logger.warn("DEMO HANDLER EXCEPTION " + e.getMessage());
@@ -129,9 +135,8 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                 return;
             }
             
-            //Can check xem loai linh can train da dc mo khoa hay chua
-            
             TroopInBarrack troop = new TroopInBarrack(packet.typeTroop);
+            
             //check queue length
             if(barrackQueue.getTotalTroopCapacity() + troop.getHousingSpace() > barrackQueue.getQueueLength()){
                 System.out.println("======================= Vuot qua queue length ======================");
@@ -258,6 +263,15 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             }
 
             TroopInBarrack troop = barrackQueue.getTroopInBarrackByName(packet.typeTroop);
+            
+            //Check time
+//            if(barrackQueue.startTime + troop.getTrainingTime() * 1000 + 2000 < System.currentTimeMillis()) {
+//
+//                send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
+//                System.out.println("============== CHUA DU THOI GIAN ===============");
+//                return;
+//            }
+            
             if(troop == null){
                 send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
                 return;
@@ -304,7 +318,7 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
                     barrackQueue.startTime = System.currentTimeMillis();    
                 }
             }           
-
+            barrackQueue.isStop = ServerConstant.NO;
             barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
             barrackQueueInfo.saveModel(user.getId());
             send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.SUCCESS, packet.idBarrack, packet.typeTroop), user);
@@ -376,6 +390,34 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             barrackQueueInfo.saveModel(user.getId());
             send(new ResponseRequestQuickFinishTrainTroop(ServerConstant.SUCCESS), user);    
           
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+     
+    private void processRequestStopTrain(User user, RequestStopTrain packet) {
+        try {
+            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
+            if (userInfo == null) {
+               return;
+            }
+            
+            BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
+            if(barrackQueueInfo == null){
+                return;
+            }
+            
+            BarrackQueue barrackQueue = barrackQueueInfo.getBarrackQueueById(packet.idBarrack);
+            int index = barrackQueueInfo.barrackQueueList.indexOf(barrackQueue);
+
+            if(barrackQueue == null){
+                return;
+            }
+            
+            barrackQueue.isStop = ServerConstant.YES;
+
+            barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
+            barrackQueueInfo.saveModel(user.getId());   
         } catch (Exception e) {
             System.out.println(e);
         }

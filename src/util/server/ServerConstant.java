@@ -86,6 +86,11 @@ public class ServerConstant {
     public static final int ID_CLC_BUILDING = 0;              //second
     public static final short ONLINE = 1;
     public static final short OFFLINE = 2;
+    
+    //Status is Stop Barrack
+    public static final short YES = 1;
+    public static final short NO = 2;
+
 
     
     //Type messageGuild

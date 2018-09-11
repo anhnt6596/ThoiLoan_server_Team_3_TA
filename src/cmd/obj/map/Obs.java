@@ -16,6 +16,15 @@ public class Obs {
     public Obs() {
         super();
     }
+
+    public void setTimeStart(long timeStart) {
+        this.timeStart = timeStart;
+    }
+
+    public long getTimeStart() {
+        return timeStart;
+    }
+
     public Obs(int _id,String _type,int x, int y) {
         super();
         this.id = _id;
@@ -122,5 +131,13 @@ public class Obs {
             
             return 0;
         } 
+    }
+
+    public void onRemove() {
+        setStatus(ServerConstant.pending_status);
+        setTimeStart(System.currentTimeMillis());
+    }
+    public void finishRemove() {
+        setStatus(ServerConstant.destroy_status);        
     }
 }
