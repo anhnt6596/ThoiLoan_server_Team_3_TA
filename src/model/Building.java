@@ -20,8 +20,7 @@ import util.server.ServerUtil;
 
 public class Building{
     public int id;
-    public String status = "complete"; //complete, pending, upgrade
-    public int timebuild =0;
+    public String status = ServerConstant.complete_status; //complete, pending, upgrade    
     public long timeStart =0;
     public String type;
     public int level;

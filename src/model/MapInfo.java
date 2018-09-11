@@ -464,11 +464,9 @@ public class MapInfo extends DataModel{
                     JSONObject town = ServerConstant.config.getJSONObject(sto_type).getJSONObject(Integer.toString(building.level));
                     ans +=(town.getInt("capacity"));
                     
-                } catch (JSONException e){
-                    
+                } catch (JSONException e){                    
                     return 0;
-                }     
-                
+                }  
             }
         }
         return ans;

@@ -515,7 +515,7 @@ public class ServerConstant {
         }
     }
     
-    public static void readConfig(){
+    public static void readConfig(){        
         readConfigArmyCamp();
         readConfigBarrack();
         readConfigBuilder();
