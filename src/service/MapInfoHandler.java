@@ -495,117 +495,7 @@ MapInfoHandler extends BaseClientRequestHandler {
     
         
     }
-    private void processUpgradeConstruction(User user, int id) {
-        MapInfo mapInfo;
-        try {
-            ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
-            if (userInfo == null) {
-               ////send response error
-               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
-               return;
-            }
-            //*------------------------------------------------
-            mapInfo = (MapInfo) MapInfo.getModel(user.getId(), MapInfo.class);
-            if (mapInfo == null) {               
-               //send response error
-               send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
-               return;
-            }
-            Building building = mapInfo.listBuilding.get(id);
-            if (building.type.equals("BDH_1") || building.status.equals(ServerConstant.destroy_status)){
-                    send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
-                    return;
-                }
-            //*------------------------------------------------
-    //            logger.info(">>>>>>>>>>>>>in ra truoc khi upgrade>>>>>>>");
-    //            mapInfo.print();
-        //neu la nha Resource thi thu hoac truoc
-            if (building.type.equals("RES_1") || building.type.equals("RES_2") || building.type.equals("RES_3")){
-                doHarvest(user,building.id);
-            }
-            
-        int exchange_resource = 0;
-        exchange_resource = ServerConstant.checkResourceBasedOnType(userInfo,(building.type),building.level+1);
-            
-        System.out.println("check_resource chuyen doi to upgrade building= " + exchange_resource );
-        int coin = ServerConstant.getCoin(building.type,building.level+1);
-
-        if ((exchange_resource+coin<userInfo.coin)){ 
-                //add building to pending
-                int gold = ServerConstant.getGold(building.type,building.level+1);
-                int elixir = ServerConstant.getElixir(building.type,building.level+1);
-                int darkElixir = ServerConstant.getDarkElixir(building.type,building.level+1);
-                
-                mapInfo.print();
-                
-                System.out.println("so tho xay hien tai la: "+ userInfo.builderNumber);
-                
-                // kiem tra tho xay
-                //                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
-                if (mapInfo.getBuilderNotFree()>=userInfo.builderNumber){ //neu khong co tho xay
-                    
-                    System.out.println("CAN GIAI PHONG THO XAY");
-                    
-                    //get resource cua nha
-                    
-                    int g_release = mapInfo.getGToReleaseBuilder();
-                    System.out.println("So G de giai phong la "+ g_release);
-    //                    check_resource = check_resource +g;
-                    if (userInfo.coin < coin+exchange_resource+g_release ){ //neu khong du tien mua tho xay
-                        //linhrafa --Neu false
-                        //tra ve false
-                        send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
-                        return;
-                    }
-                    else {
-                        //giai phong 1 ngoi nha pending
-                        
-                        mapInfo.releaseBuilding(user); 
-                        
-                        mapInfo.print();
-                        
-                        userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin+g_release, building.type, false);
-                        mapInfo.upgradeBuilding(id);
-                        
-                        userInfo.saveModel(user.getId());
-                        mapInfo.saveModel(user.getId());
-                        logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
-                        //mapInfo.print();
-                        send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
-                    }
-                } 
-                else { //neu da du tho xay
-                    userInfo.reduceUserResources(gold,elixir,darkElixir,exchange_resource+coin, building.type, false);                    
-                    mapInfo.upgradeBuilding(id);
-                    
-                    userInfo.saveModel(user.getId());
-                    mapInfo.saveModel(user.getId());
-                    logger.info(">>>>>>>>>>>>>in ra sau khi upgrade>>>>>>>");
-                    mapInfo.print();
-                    send(new ResponseRequestUpgradeConstruction(ServerConstant.SUCCESS), user);
-                }
-            }
-        else {
-            //linhrafa --Neu false
-            //tra ve false
-            send(new ResponseRequestUpgradeConstruction(ServerConstant.ERROR), user);
-            return;
-        }
-            
-        //Dat lai startTime cho Barrack
-        if(building.type.equals(ServerConstant.BARRACK_TYPE)){
-            System.out.println("==============================START UPGRADE BAR_1===========================");
-            try {
-                BarrackQueueInfo barrackQueueInfo = (BarrackQueueInfo) BarrackQueueInfo.getModel(user.getId(), BarrackQueueInfo.class);
-                barrackQueueInfo.updateWhenBarrackStartUpgrade(building.id);
-                barrackQueueInfo.saveModel(user.getId());
-            } catch (Exception e) {
-            }
-        }
-              
-        } catch (Exception e) {
-        }   
-    }
+    
     private void processFinishTimeConstruction(User user, RequestFinishTimeConstruction finish_time) {
         System.out.println(">>>>>>processFinishTimeConstruction");
         MapInfo mapInfo;
@@ -967,8 +857,6 @@ MapInfoHandler extends BaseClientRequestHandler {
             
             int productivity = doHarvest(user, do_harvest.id);
             
-            send(new ResponseDoHarvest(ServerConstant.SUCCESS, building.type, productivity ), user);
-            
         } catch (Exception e) {
             logger.info("Khong thu hoach duoc");
             send(new ResponseDoHarvest(ServerConstant.ERROR, "", 0), user);
@@ -1041,6 +929,7 @@ MapInfoHandler extends BaseClientRequestHandler {
                 logger.info("Add them gold, elixir, dark, coin= "+gold+" "+elixir+" "+darkElixir+" "+coin);
                 userInfo.saveModel(user.getId());
                 mapInfo.saveModel(user.getId());
+                send(new ResponseDoHarvest(ServerConstant.SUCCESS, building.type, productivity ), user);
                 return productivity;
                 
             } catch (Exception e) {
