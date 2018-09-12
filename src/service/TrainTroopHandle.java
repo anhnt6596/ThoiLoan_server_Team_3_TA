@@ -271,15 +271,15 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             TroopInBarrack troop = barrackQueue.getTroopInBarrackByName(packet.typeTroop);
             
             //Check time
-//            long timeTrain = troop.getTrainingTime() * 1000;
-//            long currentTime = System.currentTimeMillis();
-//            long pastTime = currentTime - barrackQueue.startTime;
-//            int remainTroop = packet.remainTroop;
-//            
-//            if ((pastTime < timeTrain) || (remainTroop != troop.getAmount() - 1)){
-//                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
-//                return;
-//            }
+            long timeTrain = troop.getTrainingTime() * 1000;
+            long currentTime = System.currentTimeMillis();
+            long pastTime = currentTime - barrackQueue.startTime;
+            int remainTroop = packet.remainTroop;
+            
+            if ((pastTime < timeTrain) || (remainTroop != troop.getAmount() - 1)){
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
+                return;
+            }
             
             if(troop == null){
                 send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
