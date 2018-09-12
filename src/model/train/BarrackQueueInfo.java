@@ -15,30 +15,6 @@ import util.server.ServerConstant;
 
 public class BarrackQueueInfo extends DataModel {
     public List<BarrackQueue> barrackQueueList = new ArrayList<BarrackQueue>();
-
-    public BarrackQueue getBarrackQueueById(int id) {
-        BarrackQueue barrackQueue;
-        for(int i = 0; i < barrackQueueList.size(); i++) {
-            barrackQueue = barrackQueueList.get(i);
-            if(barrackQueue.getId() == id) return barrackQueue;
-        }
-        return null;
-    }
-    
-    public long getMinStartTime(User user) {
-        long minTime = 1893415558482L;              //nam 2030
-        BarrackQueue barrackQueue;
-        
-        for(int i = 0; i < barrackQueueList.size(); i++) {
-            barrackQueue = barrackQueueList.get(i);
-            if(!this.isBarrackUpgrading(user, barrackQueue.getId()) 
-               && barrackQueue.startTime < minTime 
-               && barrackQueue.getAmountItemInQueue() > 0){
-                minTime = barrackQueue.startTime;
-            }
-        }
-        return minTime;
-    }
     
     //Tra ve so luong troop co the trong khoang tgian delta, khong phu thuoc vao capacity
     public int getAmountTroopCapacityCanBeTrained(User user, long _deltaTime) {
@@ -218,6 +194,30 @@ public class BarrackQueueInfo extends DataModel {
                 
             } 
         }
+    }
+    
+    public BarrackQueue getBarrackQueueById(int id) {
+        BarrackQueue barrackQueue;
+        for(int i = 0; i < barrackQueueList.size(); i++) {
+            barrackQueue = barrackQueueList.get(i);
+            if(barrackQueue.getId() == id) return barrackQueue;
+        }
+        return null;
+    }
+    
+    public long getMinStartTime(User user) {
+        long minTime = 1893415558482L;              //nam 2030
+        BarrackQueue barrackQueue;
+        
+        for(int i = 0; i < barrackQueueList.size(); i++) {
+            barrackQueue = barrackQueueList.get(i);
+            if(!this.isBarrackUpgrading(user, barrackQueue.getId()) 
+               && barrackQueue.startTime < minTime 
+               && barrackQueue.getAmountItemInQueue() > 0){
+                minTime = barrackQueue.startTime;
+            }
+        }
+        return minTime;
     }
     
     private boolean isBarrackUpgrading(User user, int barrackId) {

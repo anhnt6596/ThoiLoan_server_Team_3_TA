@@ -137,6 +137,12 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             
             TroopInBarrack troop = new TroopInBarrack(packet.typeTroop);
             
+            //Kiem tra troop da duoc mo khoa hay chua
+            if(troop.getBarrackLevelRequired() > barrackQueue.getBarrackLevel()) {
+                send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
+                return;
+            }    
+            
             //check queue length
             if(barrackQueue.getTotalTroopCapacity() + troop.getHousingSpace() > barrackQueue.getQueueLength()){
                 System.out.println("======================= Vuot qua queue length ======================");
@@ -265,12 +271,15 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
             TroopInBarrack troop = barrackQueue.getTroopInBarrackByName(packet.typeTroop);
             
             //Check time
-//            if(barrackQueue.startTime + troop.getTrainingTime() * 1000 + 2000 < System.currentTimeMillis()) {
-//
-//                send(new ResponseRequestTrainTroop(ServerConstant.ERROR), user);
-//                System.out.println("============== CHUA DU THOI GIAN ===============");
-//                return;
-//            }
+            long timeTrain = troop.getTrainingTime() * 1000;
+            long currentTime = System.currentTimeMillis();
+            long pastTime = currentTime - barrackQueue.startTime;
+            int remainTroop = packet.remainTroop;
+            
+            if ((pastTime < timeTrain) || (remainTroop != troop.getAmount() - 1)){
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
+                return;
+            }
             
             if(troop == null){
                 send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
@@ -286,38 +295,28 @@ public class TrainTroopHandle extends BaseClientRequestHandler {
 
             int indexTroop = barrackQueue.trainTroopList.indexOf(troop);
 
-            int remainTroop = packet.remainTroop;
+            troop.amount -= 1;
+            //Tang so luong loai troop nay
+            TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
+            if (troopInfo == null) {
+                send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
+                return;
+            }
 
-            long timeTrain = ServerConstant.configTroopBase.getJSONObject(packet.typeTroop).getLong("trainingTime") * 1000;
+            Troop troopObj = troopInfo.troopMap.get(packet.typeTroop);
 
-            long currentTime = System.currentTimeMillis();
-            long pastTime = currentTime - barrackQueue.startTime;
+            troopObj.population++;
+            troopInfo.troopMap.put(packet.typeTroop, troopObj);
+            troopInfo.saveModel(user.getId());
 
-            
-            if ((pastTime >= timeTrain) && (remainTroop == troop.getAmount() - 1)){
+            //Het icon trong item
+            if(troop.getAmount() == 0){
+                barrackQueue.updateQueue(indexTroop);
 
-                troop.amount -= 1;
-                //Tang so luong loai troop nay
-                TroopInfo troopInfo = (TroopInfo) TroopInfo.getModel(user.getId(), TroopInfo.class);
-                if (troopInfo == null) {
-                    send(new ResponseRequestFinishTimeTrainTroop(ServerConstant.ERROR, packet.idBarrack, packet.typeTroop), user);
-                    return;
-                }
-
-                Troop troopObj = troopInfo.troopMap.get(packet.typeTroop);
-
-                troopObj.population++;
-                troopInfo.troopMap.put(packet.typeTroop, troopObj);
-                troopInfo.saveModel(user.getId());
-
-                //Het icon trong item
-                if(troop.getAmount() == 0){
-                    barrackQueue.updateQueue(indexTroop);
-
-                }else{
-                    barrackQueue.startTime = System.currentTimeMillis();    
-                }
-            }           
+            }else{
+                barrackQueue.startTime = System.currentTimeMillis();    
+            }
+                    
             barrackQueue.isStop = ServerConstant.NO;
             barrackQueueInfo.barrackQueueList.set(index, barrackQueue);
             barrackQueueInfo.saveModel(user.getId());
