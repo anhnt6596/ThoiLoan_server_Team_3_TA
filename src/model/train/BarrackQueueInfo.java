@@ -15,59 +15,6 @@ import util.server.ServerConstant;
 
 public class BarrackQueueInfo extends DataModel {
     public List<BarrackQueue> barrackQueueList = new ArrayList<BarrackQueue>();
-
-    public BarrackQueue getBarrackQueueById(int id) {
-        BarrackQueue barrackQueue;
-        for(int i = 0; i < barrackQueueList.size(); i++) {
-            barrackQueue = barrackQueueList.get(i);
-            if(barrackQueue.getId() == id) return barrackQueue;
-        }
-        return null;
-    }
-    
-    public long getMinStartTime(User user) {
-        long minTime = 1893415558482L;              //nam 2030
-        BarrackQueue barrackQueue;
-        
-        for(int i = 0; i < barrackQueueList.size(); i++) {
-            barrackQueue = barrackQueueList.get(i);
-            if(!this.isBarrackUpgrading(user, barrackQueue.getId()) && barrackQueue.startTime < minTime && barrackQueue.getAmountItemInQueue() > 0){
-                minTime = barrackQueue.startTime;
-            }
-        }
-        return minTime;
-    }
-    
-    public void print() {
-        System.out.println("======================= BarrackQueueInfo ======================");
-        BarrackQueue barrackQueue;
-        int i = 1;
-        for(int j = 0; j < barrackQueueList.size(); j++) {
-            barrackQueue = barrackQueueList.get(j);
-            //id cua Barrack
-            System.out.println("-------------- BarrackQueue thu " + i);
-            System.out.println("id Barrack " + barrackQueue.getId());
-            System.out.println("level Barrack " + barrackQueue.getBarrackLevel());
-            System.out.println("amountItemInQueue " + barrackQueue.getAmountItemInQueue());
-            System.out.println("totalTroopCapacity " + barrackQueue.getTotalTroopCapacity());
-            System.out.println("startTime " + barrackQueue.startTime);
-            
-            //troopList
-            TroopInBarrack troopInBarrack;
-            System.out.println("-------------- TroopList --------------");
-            for(int m = 0; m < barrackQueue.trainTroopList.size(); m++) {
-                troopInBarrack = barrackQueue.trainTroopList.get(m);
-                System.out.println("-------------- Troop thu " + (m + 1));
-                System.out.println("Type troop: --- " + troopInBarrack.getName());
-                System.out.println("Amount troop in queue: --- " + troopInBarrack.getAmount());
-                j++;
-            }
-            System.out.println("-------------- END TroopList ======================");
-            System.out.println("-------------- END BarrackQueue thu " + i);
-            i++;
-        }
-        System.out.println("=======================END BarrackQueueInfo ======================");
-    }
     
     //Tra ve so luong troop co the trong khoang tgian delta, khong phu thuoc vao capacity
     public int getAmountTroopCapacityCanBeTrained(User user, long _deltaTime) {
@@ -77,7 +24,7 @@ public class BarrackQueueInfo extends DataModel {
         
         for(int j = 0; j < barrackQueueList.size(); j++) {
             barrackQueue = barrackQueueList.get(j);
-            if(this.isBarrackUpgrading(user, barrackQueue.getId())){
+            if(this.isBarrackUpgrading(user, barrackQueue.getId()) || (barrackQueue.isStop == ServerConstant.YES)){
                 continue;
             }
             
@@ -160,10 +107,10 @@ public class BarrackQueueInfo extends DataModel {
         while(tempTime > 1000){
             if(tempTroop < troopAvai){
                 tempTime /= 2;
-                deltaTime += tempTime / 2;
+                deltaTime += tempTime;
             }else if(tempTroop > troopAvai){
                 tempTime /= 2;
-                deltaTime -= tempTime / 2;
+                deltaTime -= tempTime;
             }else{
                 this.finishCheckBarrack(user, deltaTime);
                 return;
@@ -177,6 +124,16 @@ public class BarrackQueueInfo extends DataModel {
         
         //Luc nay, deltaTime da ok
         this.finishCheckBarrack(user, tempTimeLoop);
+        
+        //Set lai startTime cho Barrack dang STOP
+        for(int j = 0; j < barrackQueueList.size(); j++) {
+            barrackQueue = barrackQueueList.get(j);
+            if(barrackQueue.isStop == ServerConstant.YES){
+                System.out.println("==== Set lai time ======");
+                barrackQueue.startTime = System.currentTimeMillis() - barrackQueue.trainTroopList.get(0).getTrainingTime() * 1000 - 2500;
+            }
+        }
+        
         return;
     }
     
@@ -194,7 +151,7 @@ public class BarrackQueueInfo extends DataModel {
 
         for(int j = 0; j < barrackQueueList.size(); j++) {
             barrackQueue = barrackQueueList.get(j);
-            if(this.isBarrackUpgrading(user, barrackQueue.getId())){
+            if(this.isBarrackUpgrading(user, barrackQueue.getId()) || (barrackQueue.isStop == ServerConstant.YES)){
                 continue;
             }
             
@@ -237,6 +194,30 @@ public class BarrackQueueInfo extends DataModel {
                 
             } 
         }
+    }
+    
+    public BarrackQueue getBarrackQueueById(int id) {
+        BarrackQueue barrackQueue;
+        for(int i = 0; i < barrackQueueList.size(); i++) {
+            barrackQueue = barrackQueueList.get(i);
+            if(barrackQueue.getId() == id) return barrackQueue;
+        }
+        return null;
+    }
+    
+    public long getMinStartTime(User user) {
+        long minTime = 1893415558482L;              //nam 2030
+        BarrackQueue barrackQueue;
+        
+        for(int i = 0; i < barrackQueueList.size(); i++) {
+            barrackQueue = barrackQueueList.get(i);
+            if(!this.isBarrackUpgrading(user, barrackQueue.getId()) 
+               && barrackQueue.startTime < minTime 
+               && barrackQueue.getAmountItemInQueue() > 0){
+                minTime = barrackQueue.startTime;
+            }
+        }
+        return minTime;
     }
     
     private boolean isBarrackUpgrading(User user, int barrackId) {
@@ -297,5 +278,36 @@ public class BarrackQueueInfo extends DataModel {
         BarrackQueue barrackQueue = new BarrackQueue(id, 1);
         barrackQueue.setId(id);
         barrackQueueList.add(barrackQueue);
+    }
+    
+    public void print() {
+        System.out.println("======================= BarrackQueueInfo ======================");
+        BarrackQueue barrackQueue;
+        int i = 1;
+        for(int j = 0; j < barrackQueueList.size(); j++) {
+            barrackQueue = barrackQueueList.get(j);
+            //id cua Barrack
+            System.out.println("-------------- BarrackQueue thu " + i);
+            System.out.println("id Barrack " + barrackQueue.getId());
+            System.out.println("level Barrack " + barrackQueue.getBarrackLevel());
+            System.out.println("amountItemInQueue " + barrackQueue.getAmountItemInQueue());
+            System.out.println("totalTroopCapacity " + barrackQueue.getTotalTroopCapacity());
+            System.out.println("startTime " + barrackQueue.startTime);
+            
+            //troopList
+            TroopInBarrack troopInBarrack;
+            System.out.println("-------------- TroopList --------------");
+            for(int m = 0; m < barrackQueue.trainTroopList.size(); m++) {
+                troopInBarrack = barrackQueue.trainTroopList.get(m);
+                System.out.println("-------------- Troop thu " + (m + 1));
+                System.out.println("Type troop: --- " + troopInBarrack.getName());
+                System.out.println("Amount troop in queue: --- " + troopInBarrack.getAmount());
+                j++;
+            }
+            System.out.println("-------------- END TroopList ======================");
+            System.out.println("-------------- END BarrackQueue thu " + i);
+            i++;
+        }
+        System.out.println("=======================END BarrackQueueInfo ======================");
     }
 }

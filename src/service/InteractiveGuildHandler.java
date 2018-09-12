@@ -83,18 +83,13 @@ public class InteractiveGuildHandler extends BaseClientRequestHandler {
         try {
             
             ZPUserInfo userInfo = (ZPUserInfo) ZPUserInfo.getModel(user.getId(), ZPUserInfo.class);
-            System.out.println("================== HERE 1 ===============");
             if (userInfo == null) {
                //send response error
                send(new ResponseSendNewMessage(ServerConstant.VALIDATE, ServerConstant.ERROR, null, null), user);
                return;
             }
             
-            System.out.println("================== HERE 2 ===============");
-            
             GuildBuilding guildBuilding = (GuildBuilding) GuildBuilding.getModel(user.getId(), GuildBuilding.class);
-            
-            System.out.println("================== HERE 3 ===============");
             
             //Lay guild Capacity tai thoi diem do
             int guildCapacity = guildBuilding.getGuildCapacity(userInfo);

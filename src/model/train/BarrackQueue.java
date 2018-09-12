@@ -28,12 +28,14 @@ public class BarrackQueue extends DataModel {
     private int id;
     private int barrackLevel;           
     public long startTime;
+    public short isStop;
     public List<TroopInBarrack> trainTroopList = new LinkedList<TroopInBarrack>();
 
     public BarrackQueue(int id, int barrackLevel) {
         this.setId(id);
         this.setBarrackLevel(barrackLevel);
         startTime = 0L;
+        isStop = ServerConstant.NO;
     }
 
     public TroopInBarrack getTroopInBarrackByName(String troopType) {
@@ -47,6 +49,7 @@ public class BarrackQueue extends DataModel {
     
     public void doReset() {
         startTime = 0L;
+        isStop = ServerConstant.NO;
         trainTroopList.clear();
     }
     

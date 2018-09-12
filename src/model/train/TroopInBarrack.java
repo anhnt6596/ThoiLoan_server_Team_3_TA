@@ -63,5 +63,13 @@ public class TroopInBarrack extends DataModel {
             return 0;
         }
     }
+    
+    public int getBarrackLevelRequired() {
+        try {
+            return ServerConstant.configTroopBase.getJSONObject(this.name).getInt("barracksLevelRequired");
+        } catch (JSONException e) {
+            return 0;
+        } 
+    }
                                        
 }
